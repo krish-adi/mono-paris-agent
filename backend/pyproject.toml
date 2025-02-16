@@ -15,4 +15,6 @@ dependencies = [
     "uvicorn>=0.34.0",
     "supabase>=2.13.0",
     "logfire[httpx]>=3.5.3",
+    "exa-py>=1.8.8",
+    "openai>=1.63.0",
 ]

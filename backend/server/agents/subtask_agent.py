@@ -55,7 +55,7 @@ class OrchestratorResult(BaseModel):
     tools_needed: List[str] | None
     best_score: float
 
-orchestrator_agent = Agent(
+subtask_agent = Agent(
     model=settings.model,
     system_prompt=PROMPT,
     result_type=OrchestratorResult,
@@ -63,15 +63,15 @@ orchestrator_agent = Agent(
     retries=settings.max_retries
 )
 
-@orchestrator_agent.tool
+@subtask_agent.tool
 async def test_design_tool(ctx: RunContext[None], task: str, job_context: str) -> TestCase:
     return await create_test_case(task, job_context)
 
-@orchestrator_agent.tool
+@subtask_agent.tool
 async def agent_design_tool(ctx: RunContext[None], task: str, test_case: str) -> AgentDesign:
     return await design_agent(task, test_case)
 
-@orchestrator_agent.tool
+@subtask_agent.tool
 async def agent_evaluator_tool(
     ctx: RunContext[None],
     task: str,
@@ -81,12 +81,12 @@ async def agent_evaluator_tool(
 ) -> EvaluationResult:
     return await evaluate_agent(task, test_case, system_prompt, expected_output)
 
-async def orchestrator(task: str, job_title: str, job_description: str) -> OrchestratorResult:
+async def subtask_agent(task: str, job_title: str, job_description: str) -> OrchestratorResult:
     context = f"""
 JOB TITLE: {job_title}
 JOB DESCRIPTION: {job_description}
 TASK TO EVALUATE: {task}
 """
-    result = await orchestrator_agent.run(context)
-    log_messages("Orchestrator", result.all_messages())
+    result = await subtask_agent.run(context)
+    log_messages("Subtask Agent", result.all_messages())
     return result.data

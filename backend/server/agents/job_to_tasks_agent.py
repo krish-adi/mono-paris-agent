@@ -94,7 +94,7 @@ Please provide a JSON object with the following structure:
     ]
 }"""
 
-job_to_tasks_agent = Agent(
+jtt_agent = Agent(
     model=settings.model,
     system_prompt=JOB_TO_TASKS_PROMPT,
     result_type=JobSkillsAndTasks,
@@ -102,8 +102,8 @@ job_to_tasks_agent = Agent(
     retries=settings.max_retries
 )
 
-async def job_to_tasks(job_title: str, job_description: str) -> JobSkillsAndTasks:
+async def job_to_tasks_agent(job_title: str, job_description: str) -> JobSkillsAndTasks:
     input_message = f"JOB TITLE: {job_title}\n\n\nJOB DESCRIPTION: {job_description}"
-    result = await job_to_tasks_agent.run(input_message)
+    result = await jtt_agent.run(input_message)
     log_messages("Job To Tasks", result.all_messages())
     return result.data
