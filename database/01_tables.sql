@@ -22,7 +22,7 @@ create table
         job_skills text[],
         job_responsibilities text[],
         job_tasks uuid[],
-        request_status text,
+        report_status text,
         created_at timestamp with time zone default timezone ('utc'::text, now()) not null,
         updated_at timestamp with time zone default timezone ('utc'::text, now()) not null
     );
@@ -54,6 +54,7 @@ comment on column public.user_requests.created_at is 'Timestamp when the request
 create table
     public.job_tasks (
         id uuid primary key,
+        report_id uuid references public.reports not null,
         task text,
         description text,
         sub_tasks uuid[],
@@ -62,6 +63,7 @@ create table
     );
 comment on table public.job_tasks is 'Stores job tasks for tracking and analysis';
 comment on column public.job_tasks.id is 'Unique identifier for each job task';
+comment on column public.job_tasks.report_id is 'References the report';
 comment on column public.job_tasks.task is 'The title name of the task';
 comment on column public.job_tasks.description is 'The description of the task';
 comment on column public.job_tasks.sub_tasks is 'The sub tasks of the task';
