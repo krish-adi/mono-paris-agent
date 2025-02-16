@@ -301,7 +301,12 @@ export function Dashboard({ reportId }: { reportId: string }) {
 
       <div className="flex flex-col gap-6 mt-8">
         {dashboardData.taskCategories.map((category, index) => (
-          <TaskCategoryDetailed key={index} reportId={reportId} {...category} />
+          <TaskCategoryDetailed
+            key={index}
+            reportId={reportId}
+            {...category}
+            isFinished={report.report_status === "report_complete"}
+          />
         ))}
       </div>
     </div>
@@ -349,8 +354,10 @@ function TaskCategoryDetailed({
   tasks,
   background,
   reportId,
+  isFinished,
 }: DisplayTaskCategory & {
   reportId: string;
+  isFinished: boolean;
 }) {
   return (
     <motion.div
@@ -397,6 +404,13 @@ function TaskCategoryDetailed({
                 </motion.li>
               );
             })}
+            {!isFinished && (
+              // skeleton
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-48 mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
+              </div>
+            )}
           </ul>
         </CardContent>
       </Card>
