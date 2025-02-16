@@ -1,9 +1,24 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from server.routes import router
+from contextlib import asynccontextmanager
+from server.settings import settings
+from server.db.client import database
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup events
+    load_dotenv()
+    settings.load_settings()
+    await database.startup()
+    yield
+    # Shutdown events
+    await database.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Configure CORS middleware
 app.add_middleware(

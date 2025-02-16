@@ -7,6 +7,8 @@ load_dotenv()
 class Settings(BaseSettings):
     model: str = os.getenv("MODEL")
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY")
+    supabase_url: str = os.getenv("SUPABASE_URL")
+    supabase_key: str = os.getenv("SUPABASE_KEY")
 
     class Config:
         env_file = ".env"

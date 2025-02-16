@@ -21,7 +21,6 @@ create table
         job_requirements text[],
         job_skills text[],
         job_responsibilities text[],
-        job_tasks uuid[],
         report_status text,
         created_at timestamp with time zone default timezone ('utc'::text, now()) not null,
         updated_at timestamp with time zone default timezone ('utc'::text, now()) not null
@@ -33,7 +32,6 @@ comment on column public.reports.job_description is 'The description of the job'
 comment on column public.reports.job_requirements is 'The requirements of the job';
 comment on column public.reports.job_skills is 'The skills required for the job';
 comment on column public.reports.job_responsibilities is 'The responsibilities of the job';
-comment on column public.reports.job_tasks is 'The tasks required for the job';
 comment on column public.reports.created_at is 'Timestamp when the report was created';
 comment on column public.reports.updated_at is 'Timestamp when the report was last updated';
 --
@@ -57,8 +55,8 @@ create table
         report_id uuid references public.reports not null,
         task text,
         description text,
-        sub_tasks uuid[],
         time_percentage float,
+        job_task_status text,
         created_at timestamp with time zone default timezone ('utc'::text, now()) not null      
     );
 comment on table public.job_tasks is 'Stores job tasks for tracking and analysis';
@@ -66,8 +64,8 @@ comment on column public.job_tasks.id is 'Unique identifier for each job task';
 comment on column public.job_tasks.report_id is 'References the report';
 comment on column public.job_tasks.task is 'The title name of the task';
 comment on column public.job_tasks.description is 'The description of the task';
-comment on column public.job_tasks.sub_tasks is 'The sub tasks of the task';
 comment on column public.job_tasks.time_percentage is 'The percentage of time the task takes';
+comment on column public.job_tasks.job_task_status is 'The status of the job task';
 comment on column public.job_tasks.created_at is 'Timestamp when the task was created';
 --
 --
@@ -79,6 +77,7 @@ create table
         sub_task text,
         description text,
         llm_prompt text,
+        job_sub_task_status text,
         created_at timestamp with time zone default timezone ('utc'::text, now()) not null
     );
 comment on table public.job_sub_tasks is 'Stores job sub tasks for tracking and analysis';
@@ -87,4 +86,5 @@ comment on column public.job_sub_tasks.task_id is 'References the job task';
 comment on column public.job_sub_tasks.sub_task is 'The title name of the sub task';
 comment on column public.job_sub_tasks.description is 'The description of the sub task';
 comment on column public.job_sub_tasks.llm_prompt is 'The system prompt used to create the agent for the sub task';
+comment on column public.job_sub_tasks.job_sub_task_status is 'The status of the job sub task';
 comment on column public.job_sub_tasks.created_at is 'Timestamp when the sub task was created';
