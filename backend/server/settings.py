@@ -9,7 +9,7 @@ class Settings():
     langfuse_public_key: str = None
     langfuse_secret_key: str = None
     model_settings: ModelSettings = ModelSettings(temperature=0)
-    max_retries: int = 3
+    max_retries: int = 12
     logfire_token: str = None
     exa_api_key: str = None
     perplexity_api_key: str = None

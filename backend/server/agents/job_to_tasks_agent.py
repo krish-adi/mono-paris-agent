@@ -65,7 +65,7 @@ jtt_agent = Agent(
         "timeout": 60.0,  # Increase timeout to 60 seconds
         "request_timeout": 60.0
     },
-    retries=settings.max_retries,
+    retries=5,
     deps_type=JobContext
 )
 

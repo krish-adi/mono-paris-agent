@@ -87,6 +87,16 @@ JOB TITLE: {job_title}
 JOB DESCRIPTION: {job_description}
 TASK TO EVALUATE: {task}
 """
-    result = await subtask_agent.run(context)
-    log_messages("Subtask Agent", result.all_messages())
-    return result.data
+    try:
+        result = await subtask_agent.run(context)
+        log_messages("Subtask Agent", result.all_messages())
+        return result.data
+    except Exception as e:
+        # If anything fails, return HUMAN_ONLY with score 0
+        return OrchestratorResult(
+            task_category="HUMAN_ONLY",
+            reasoning="Failed to evaluate task due to an error",
+            system_prompt=None,
+            tools_needed=None,
+            best_score=0
+        )
