@@ -291,13 +291,13 @@ export function Dashboard({ reportId }: { reportId: string }) {
         </div>
       </motion.div>
 
-      <Alert variant="default">
+      {/* <Alert variant="default">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>{dashboardData.alertInfo.title}</AlertTitle>
         <AlertDescription>
           {dashboardData.alertInfo.description}
         </AlertDescription>
-      </Alert>
+      </Alert> */}
 
       <div className="flex flex-col gap-6 mt-8">
         {dashboardData.taskCategories.map((category, index) => (
