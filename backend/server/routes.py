@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional
+from pydantic import BaseModel
 import traceback
 from fastapi import APIRouter
 from uuid import uuid4
@@ -79,17 +80,24 @@ def read_root():
     return {"Hello": "World"}
 
 
+class RequestAgentRunRequest(BaseModel):
+    job_title: str
+    job_description: Optional[str] = None
+
+
+class RequestAgentRunResponse(BaseModel):
+    report_id: str
+
+
 @router.post("/agent/request")
-async def request_agent_run(job_title: str, job_description: Optional[str] = None):
+async def request_agent_run(request: RequestAgentRunRequest) -> RequestAgentRunResponse:
     """
     Request an agent run and return the report id to keep track of the request.
     """
     report_id = str(uuid4())
-    _response_1 = await query_create_user_request(report_id, job_title)
+    _response_1 = await query_create_user_request(report_id, request.job_title)
     print(_response_1)
-    return {
-        "report_id": report_id,
-    }
+    return RequestAgentRunResponse(report_id=report_id)
 
 
 @router.post("/agent/test")
