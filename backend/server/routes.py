@@ -17,7 +17,9 @@ def read_root():
 
 @router.post("/agent/request")
 def request_agent_run(job_title: str, job_description: Optional[str] = None):
-    # Debug print to verify settings
+    """
+    Request an agent run and return the report id to keep track of the request.
+    """
     report_id = uuid4()
     return {"report_id": report_id}
 
