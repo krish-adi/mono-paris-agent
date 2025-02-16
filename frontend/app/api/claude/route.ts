@@ -13,7 +13,7 @@ const anthropic = new Anthropic({
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, sessionId } = body;
+    const { messages, sessionId, systemPrompt } = body;
 
     if (!messages || !Array.isArray(messages) || !sessionId) {
       return NextResponse.json(
@@ -22,17 +22,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1024,
-      temperature: 0.7,
-      system: `You are Claude, an AI assistant. Please follow these guidelines:
+    const defaultSystemPrompt = `You are Claude, an AI assistant. Please follow these guidelines:
   - Provide concise, direct answers focused on the user's question
   - Use a friendly but professional tone
   - Keep responses focused and structured
   - Use markdown formatting when appropriate
   
-  Current conversation context: This is a continuing conversation with session ID ${sessionId}.`,
+  Current conversation context: This is a continuing conversation with session ID ${sessionId}.`;
+
+    if (systemPrompt) {
+      console.log("Using custom system prompt");
+    }
+
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1024,
+      temperature: 0.7,
+      system: systemPrompt || defaultSystemPrompt,
       messages: messages.map((m: Message) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,

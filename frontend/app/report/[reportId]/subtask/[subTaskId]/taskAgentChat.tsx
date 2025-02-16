@@ -14,6 +14,8 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { createClient } from "@/utils/supabase/client";
+import { Tables } from "@/lib/database.types";
 
 const CodeBlock = ({ inline, className, children }: any) => {
   if (inline) {
@@ -45,12 +47,13 @@ const CodeBlock = ({ inline, className, children }: any) => {
 
 export default function TaskAgentChat({
   reportId,
-  taskAgentId,
+  subTaskId,
 }: {
   reportId: string;
-  taskAgentId: string;
+  subTaskId: string;
 }) {
   const [sessionId] = useState<string>(uuidv4());
+  const [subtask, setSubtask] = useState<Tables<"job_sub_tasks"> | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -60,7 +63,6 @@ export default function TaskAgentChat({
       createdAt: new Date(),
     },
   ]);
-  console.log(messages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,26 @@ export default function TaskAgentChat({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const fetchSubtask = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("job_sub_tasks")
+        .select("*")
+        .eq("id", subTaskId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching subtask:", error);
+        return;
+      }
+
+      setSubtask(data);
+    };
+
+    fetchSubtask();
+  }, [subTaskId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -87,6 +109,7 @@ export default function TaskAgentChat({
         body: JSON.stringify({
           messages: [...messages, message],
           sessionId,
+          systemPrompt: subtask?.llm_prompt || undefined,
         }),
       });
 
@@ -164,7 +187,7 @@ export default function TaskAgentChat({
         <Card className="mb-4">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Chat with Claude LLM</span>
+              <span>Chat with our Agent</span>
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/report/${reportId}`}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -175,7 +198,15 @@ export default function TaskAgentChat({
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Current task: Task 4 (Human + AI)
+              {subtask ? (
+                <>
+                  <span className="font-medium">{subtask.sub_task}</span>
+                  <br />
+                  {subtask.description}
+                </>
+              ) : (
+                "Loading subtask details..."
+              )}
             </p>
           </CardContent>
         </Card>

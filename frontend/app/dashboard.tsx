@@ -289,7 +289,7 @@ function TaskCategoryDetailed({
               >
                 {task.llm_prompt ? (
                   <Link
-                    href={`/report/${reportId}/task-agent/${task.id}`}
+                    href={`/report/${reportId}/subtask/${task.id}`}
                     className="flex gap-2 items-center"
                   >
                     {task.sub_task}
