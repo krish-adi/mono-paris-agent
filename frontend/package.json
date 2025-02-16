@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "generate-types": "npx supabase gen types typescript --project-id 'snsfloktgeodezeellrm' --schema public > lib/database.types.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",

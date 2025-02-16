@@ -54,29 +54,23 @@ export default function Home() {
   };
 
   return (
-    <main className="flex-1 flex flex-col gap-6 px-8 max-w-3xl w-svw">
+    <main className="flex-1 flex flex-col gap-6 px-8 max-w-3xl w-svw pt-10">
+      <h1 className="text-3xl font-bold text-gray-900">Generate your report</h1>
       <Form.Root onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Form.Field className="mb-2.5 grid" name="title">
           <div className="flex items-end justify-between">
             <Form.Label className="text-sm font-medium text-gray-700">
               Job Title <span className="text-red-600">*</span>
             </Form.Label>
-            <div className="flex gap-2 items-end">
-              <Form.Message
-                className="text-sm text-red-600"
-                match="valueMissing"
-              >
-                Please enter a job title
-              </Form.Message>
-              <Button
-                size="sm"
-                className="flex gap-1"
-                variant="ghost"
-                type="button"
-              >
-                <SparklesIcon size="14" /> Generate
-              </Button>
-            </div>
+
+            <Button
+              size="sm"
+              className="flex gap-1"
+              variant="ghost"
+              type="button"
+            >
+              <SparklesIcon size="14" /> Auto-fill
+            </Button>
           </div>
           <Form.Control asChild>
             <Input
@@ -86,6 +80,9 @@ export default function Home() {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </Form.Control>
+          <Form.Message className="text-sm text-red-600" match="valueMissing">
+            Please enter a job title
+          </Form.Message>
         </Form.Field>
         <Form.Field className="mb-2.5 grid" name="description">
           <div className="flex items-baseline justify-between">

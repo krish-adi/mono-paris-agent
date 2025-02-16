@@ -32,9 +32,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-2 items-center">
+            <div className="flex-1 w-full flex flex-col items-center">
               <Navbar />
-              <div className="flex flex-col gap-4 max-w-5xl p-5">
+              <div className="flex flex-col gap-4 max-w-screen-xl p-5 flex-1 overflow-auto">
                 {children}
               </div>
             </div>
