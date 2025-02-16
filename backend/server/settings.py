@@ -3,7 +3,7 @@ import os
 import base64
 
 
-class Settings:
+class Settings():
     model: str = "anthropic:claude-3-5-sonnet-latest"
     anthropic_api_key: str = None
     supabase_url: str = None
@@ -13,6 +13,8 @@ class Settings:
     model_settings: ModelSettings = ModelSettings(temperature=0)
     max_retries: int = 3
     logfire_token: str = None
+    exa_api_key: str = None
+    perplexity_api_key: str = None
 
     def load_settings(self):
         self.model: str = os.getenv("MODEL")
@@ -26,6 +28,9 @@ class Settings:
         # self.langfuse_auth: str = base64.b64encode(
         #     f"{self.langfuse_public_key}:{self.langfuse_secret_key}".encode()
         # ).decode()
+        self.model_settings: ModelSettings = ModelSettings(temperature=0)
+        self.exa_api_key: str = os.getenv("EXA_API_KEY")
+        self.perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY")
 
         # os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = (
         #     "https://cloud.langfuse.com/api/public/otel"  # EU data region
