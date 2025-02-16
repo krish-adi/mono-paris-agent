@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 from fastapi import APIRouter
+from uuid import uuid4
 from server.agents import job_to_tasks
 from server.settings import settings
 
@@ -14,8 +15,17 @@ def read_root():
     return {"Hello": "World"}
 
 
+@router.post("/agent/request")
+def request_agent_run(job_title: str, job_description: Optional[str] = None):
+    # Debug print to verify settings
+    report_id = uuid4()
+    return {"report_id": report_id}
+
+
 @router.post("/agent/job-description")
-async def build_complete_job_description(job_title: str, job_description: Optional[str] = None):
+async def build_complete_job_description(
+    job_title: str, job_description: Optional[str] = None
+):
     """
     Runs an agent that takes a job title and optional job description as input and generates
     a complete job description, including tasks, required skills, and responsibilities.
@@ -28,10 +38,10 @@ async def build_complete_job_description(job_title: str, job_description: Option
     else:
         # Combine title and description for better context
         job_description = f"{job_title}: {job_description}"
-    
+
     # Use the job_to_tasks agent to generate the complete breakdown
     result = await job_to_tasks.job_to_tasks(job_title, job_description)
-    
+
     # Convert TaskItem objects to dictionaries with model_dump() instead of dict()
     return {
         "job_title": result.job_title,
@@ -39,7 +49,7 @@ async def build_complete_job_description(job_title: str, job_description: Option
         "job_requirements": result.job_requirements,
         "job_skills": result.job_skills,
         "job_responsibilities": result.job_responsibilities,
-        "job_tasks": [task.model_dump() for task in result.job_tasks]
+        "job_tasks": [task.model_dump() for task in result.job_tasks],
     }
 
 
