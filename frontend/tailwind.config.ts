@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import animatePlugin from "tailwindcss-animate";
+import typographyPlugin from "@tailwindcss/typography";
 
 const config = {
   darkMode: ["class"],
@@ -72,9 +74,33 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            "code::before": { content: '""' },
+            "code::after": { content: '""' },
+            code: {
+              fontWeight: "400",
+              // backgroundColor: "hsl(var(--muted))",
+              paddingLeft: "4px",
+              paddingRight: "4px",
+              paddingTop: "2px",
+              paddingBottom: "2px",
+              borderRadius: "4px",
+            },
+            pre: {
+              // backgroundColor: "hsl(var(--muted))",
+              code: {
+                backgroundColor: "transparent",
+                padding: "0",
+              },
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animatePlugin, typographyPlugin],
 } satisfies Config;
 
 export default config;
