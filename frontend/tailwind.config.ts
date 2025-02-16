@@ -89,7 +89,7 @@ const config = {
               borderRadius: "4px",
             },
             pre: {
-              // backgroundColor: "hsl(var(--muted))",
+              backgroundColor: "hsl(var(--muted))",
               code: {
                 backgroundColor: "transparent",
                 padding: "0",
