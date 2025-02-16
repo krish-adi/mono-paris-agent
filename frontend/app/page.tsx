@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dashboard } from "./components/dashboard";
+import { useRouter } from "next/navigation";
 
 const descriptions = [
   "Calling Agent",
@@ -29,7 +29,7 @@ export function useLoadingAnimation(isLoading: boolean) {
       setCurrentDescriptionIndex(
         (prevIndex) => (prevIndex + 1) % descriptions.length
       );
-    }, 2000);
+    }, 700);
 
     return () => clearInterval(intervalId);
   }, [isLoading]);
@@ -42,22 +42,24 @@ export function useLoadingAnimation(isLoading: boolean) {
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const { currentDescription } = useLoadingAnimation(isLoading);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
+    router.push("/report");
   };
 
   return (
     <main className="flex-1 flex flex-col gap-6 px-8 max-w-3xl w-svw">
       <Form.Root onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Form.Field className="mb-2.5 grid" name="title">
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-end justify-between">
             <Form.Label className="text-sm font-medium text-gray-700">
-              Job Title
+              Job Title <span className="text-red-600">*</span>
             </Form.Label>
             <div className="flex gap-2 items-end">
               <Form.Message
@@ -106,7 +108,7 @@ export default function Home() {
             }`}
             disabled={isLoading}
           >
-            {isLoading ? "Submitting..." : "Submit"}
+            {isLoading ? "Generating..." : "Generate my report"}
           </Button>
         </Form.Submit>
       </Form.Root>
@@ -142,7 +144,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      <Dashboard />
     </main>
   );
 }
