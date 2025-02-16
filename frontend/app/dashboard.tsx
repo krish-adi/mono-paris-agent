@@ -229,17 +229,22 @@ export function Dashboard({ reportId }: { reportId: string }) {
 
   const taskCategories: DisplayTaskCategory[] = tempTaskCategories.map((c) => ({
     ...c,
-    percentage: (c.percentage / totalpercentage || 0) * 100,
+    percentage: Number(
+      ((c.percentage / totalpercentage || 0) * 100).toFixed(1)
+    ),
   }));
 
-  const indexScore =
-    (taskCategories
-      .flatMap((c) => c.tasks)
-      .reduce(
-        (acc, task) =>
-          acc + ((task.best_score || 0) * (task.time_percentage || 0) || 0),
-        0
-      ) || 0) / 10;
+  const indexScore = Number(
+    (
+      (taskCategories
+        .flatMap((c) => c.tasks)
+        .reduce(
+          (acc, task) =>
+            acc + ((task.best_score || 0) * (task.time_percentage || 0) || 0),
+          0
+        ) || 0) / 10
+    ).toFixed(1)
+  );
 
   console.log({ taskCategories });
 
@@ -334,7 +339,9 @@ function TaskCategorySummary({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold mb-2">{percentage}%</div>
+          <div className="text-2xl font-bold mb-2">
+            {percentage.toFixed(1)}%
+          </div>
           <Progress
             value={percentage}
             className="h-2 mb-4"
@@ -373,7 +380,9 @@ function TaskCategoryDetailed({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold mb-2">{percentage}%</div>
+          <div className="text-2xl font-bold mb-2">
+            {percentage.toFixed(1)}%
+          </div>
           <Progress
             value={percentage}
             className="h-2 mb-4"
