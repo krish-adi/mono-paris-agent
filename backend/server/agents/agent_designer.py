@@ -3,25 +3,16 @@ from typing import List
 from pydantic_ai import Agent
 from server.settings import settings
 from server.agents.message_logger import log_messages
-
+import json
 class AgentDesign(BaseModel):
     system_prompt: str
     required_tools: List[str]
     explanation: str
 
-AGENT_DESIGN_PROMPT = """You are an expert at designing AI agents. Your job is to create effective system prompts and identify required tools for AI agents to perform specific tasks.
+AGENT_DESIGN_PROMPT = f"""You are an expert at designing AI agents. Your job is to create effective system prompts and identify required tools for AI agents to perform specific tasks.
 
 Available tools to choose from:
-- web_search: Search the internet for information
-- calculator: Perform mathematical calculations
-- code_interpreter: Execute and analyze code
-- document_reader: Read and extract information from documents
-- email_sender: Send emails
-- calendar_manager: Manage calendar events
-- database_query: Query databases
-- file_system: Read and write files
-- image_analyzer: Analyze images
-- pdf_processor: Process PDF documents
+{json.dumps(settings.tools, indent=2)}
 
 When designing an agent, you should:
 1. Create a clear, specific system prompt that guides the AI
@@ -35,6 +26,9 @@ The system prompt should:
 - Include error handling guidance
 
 Return only a JSON object with the design details."""
+
+
+print(AGENT_DESIGN_PROMPT)
 
 agent_design_agent = Agent(
     model=settings.model,

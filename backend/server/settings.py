@@ -1,6 +1,6 @@
 from pydantic_ai.settings import ModelSettings
 import os
-
+from server.services.get_composio_tools import get_apps
 class Settings():
     model: str = None
     anthropic_api_key: str = None
@@ -8,10 +8,12 @@ class Settings():
     supabase_key: str = None
     exa_api_key: str = None
     perplexity_api_key: str = None
+    composio_api_key: str = None
+    tools: list = []
 
     def load_settings(self):
         self.model: str = os.getenv("MODEL")
-        self.max_retries: int = 3,
+        self.max_retries: int = 3
         self.logfire_token: str = os.getenv("LOGFIRE_TOKEN")
         self.anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY")
         self.supabase_url: str = os.getenv("SUPABASE_URL")
@@ -19,8 +21,9 @@ class Settings():
         self.model_settings: ModelSettings = ModelSettings(temperature=0)
         self.exa_api_key: str = os.getenv("EXA_API_KEY")
         self.perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY")
+        self.composio_api_key: str = os.getenv("COMPOSIO_API_KEY")
 
-
+        self.tools = get_apps()
 
 settings = Settings()
 settings.load_settings()
