@@ -12,70 +12,166 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { Tables } from "@/lib/database.types";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 type Task = {
   name: string;
   taskAgentId?: string;
 };
 
-type TaskCategory = {
+type DisplayTaskCategory = {
   icon: typeof User | typeof Settings | typeof Cpu;
   title: string;
   percentage: number;
   color: string;
-  tasks: Task[];
+  tasks: LocalSubTask[];
 };
 
 type DashboardData = {
   title: string;
   jobTitle: string;
   irreplaceablePercentage: number;
-  taskCategories: TaskCategory[];
+  taskCategories: DisplayTaskCategory[];
   alertInfo: {
     title: string;
     description: string;
   };
 };
 
-const dashboardData: DashboardData = {
-  title: "4. Final Dashboard",
-  jobTitle: "Junior Software Developer",
-  irreplaceablePercentage: 94,
-  taskCategories: [
+const TASK_CATEGORIES = ["HUMAN_ONLY", "HUMAN_AI", "AUTOMATABLE"] as const;
+type TaskCategory = (typeof TASK_CATEGORIES)[number];
+type InputReportWithTasks = Tables<"reports"> & {
+  job_tasks: (Tables<"job_tasks"> & {
+    job_sub_tasks: Tables<"job_sub_tasks">[];
+  })[];
+};
+type LocalSubTask = Tables<"job_sub_tasks"> & {
+  taskCategory: TaskCategory;
+};
+type ReportWithTasks = Tables<"reports"> & {
+  job_sub_tasks: LocalSubTask[];
+};
+
+const getReport = async (reportId: string) => {
+  const supabase = await createClient();
+  const { data: report } = await supabase
+    .from("reports")
+    .select(
+      `
+      *,
+      job_tasks:job_tasks (
+        *,
+        job_sub_tasks:job_sub_tasks (*)
+      )
+    `
+    )
+    .eq("id", reportId)
+    .single<InputReportWithTasks>();
+
+  if (!report) {
+    return report;
+  }
+
+  return {
+    ...report,
+    job_sub_tasks: report.job_tasks
+      .flatMap((j) => j.job_sub_tasks)
+      .map((j) => ({
+        ...j,
+        taskCategory: TASK_CATEGORIES[
+          Math.floor(Math.random() * 3)
+        ] satisfies TaskCategory,
+      })),
+  } satisfies ReportWithTasks;
+};
+
+export function Dashboard({ reportId }: { reportId: string }) {
+  const [report, setReport] = useState<ReportWithTasks | null>(null);
+
+  useEffect(() => {
+    const fetchReport = async () => {
+      const fetchedReport = await getReport(reportId);
+      setReport(fetchedReport);
+
+      // If report is not ready, continue polling
+      if (fetchedReport?.report_status !== "job_description_agent_completed") {
+        return false;
+      }
+      return true;
+    };
+
+    // Initial fetch
+    fetchReport();
+
+    // Set up polling every 2 seconds if report is not ready
+    const interval = setInterval(async () => {
+      const isCompleted = await fetchReport();
+      if (isCompleted) {
+        clearInterval(interval);
+      }
+    }, 2000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, [reportId]);
+
+  if (!report) {
+    return <div>Loading...</div>;
+  }
+
+  if (report.report_status !== "job_description_agent_completed") {
+    return <div>Analyzing your job description...</div>;
+  }
+
+  console.log({ report });
+
+  if (!report?.job_sub_tasks) {
+    return null;
+  }
+
+  const taskCategories: DisplayTaskCategory[] = [
     {
       icon: User,
       title: "Human Only",
       percentage: 57,
       color: "bg-blue-600",
-      tasks: [{ name: "Task 1" }, { name: "Task 2" }, { name: "Task 3" }],
+      tasks: report.job_sub_tasks.filter(
+        (task) => task.taskCategory === "HUMAN_ONLY"
+      ),
     },
     {
       icon: Settings,
       title: "Human + AI",
       percentage: 37,
       color: "bg-purple-500",
-      tasks: [
-        { name: "Task 4", taskAgentId: "456" },
-        { name: "Task 5" },
-        { name: "Task 6" },
-      ],
+      tasks: report.job_sub_tasks.filter(
+        (task) => task.taskCategory === "HUMAN_AI"
+      ),
     },
     {
       icon: Cpu,
       title: "Automatable",
       percentage: 6,
       color: "bg-gray-500",
-      tasks: [{ name: "Task 7", taskAgentId: "789" }, { name: "Task 8" }],
+      tasks: report.job_sub_tasks.filter(
+        (task) => task.taskCategory === "AUTOMATABLE"
+      ),
     },
-  ],
-  alertInfo: {
-    title: "What does this mean?",
-    description:
-      "As a Junior Software Developer, your role remains highly irreplaceable. While some routine tasks can be automated, the majority of your work requires human judgment, creativity, and collaboration. The significant portion of human+AI tasks suggests that leveraging AI tools will enhance your productivity while maintaining human oversight.",
-  },
-};
+  ];
 
-export function Dashboard() {
+  const dashboardData: DashboardData = {
+    title: "4. Final Dashboard",
+    jobTitle: report.job_title || "Unknown Job",
+    irreplaceablePercentage: 94,
+    taskCategories,
+    alertInfo: {
+      title: "What does this mean?",
+      description: report.job_description || "No description available",
+    },
+  };
+
   return (
     <div>
       <motion.div
@@ -85,9 +181,7 @@ export function Dashboard() {
         transition={{ duration: 0.5 }}
       >
         <div className="text-center mb-8">
-          <h2 className="text-xl text-gray-600 mb-2">
-            {dashboardData.jobTitle}
-          </h2>
+          <h2 className="text-xl text-gray-600 mb-2">{report.job_title}</h2>
           <motion.div
             className="text-6xl font-bold text-blue-900 mb-2"
             initial={{ scale: 0.5 }}
@@ -123,7 +217,7 @@ export function Dashboard() {
 
       <div className="flex flex-col gap-6 mt-8">
         {dashboardData.taskCategories.map((category, index) => (
-          <TaskCategoryDetailed key={index} {...category} />
+          <TaskCategoryDetailed key={index} reportId={reportId} {...category} />
         ))}
       </div>
     </div>
@@ -135,7 +229,7 @@ function TaskCategorySummary({
   title,
   percentage,
   color,
-}: TaskCategory) {
+}: DisplayTaskCategory) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -164,7 +258,10 @@ function TaskCategoryDetailed({
   percentage,
   color,
   tasks,
-}: TaskCategory) {
+  reportId,
+}: DisplayTaskCategory & {
+  reportId: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -190,16 +287,16 @@ function TaskCategoryDetailed({
                 transition={{ delay: index * 0.1 }}
                 className="text-sm text-gray-600"
               >
-                {task.taskAgentId ? (
+                {task.llm_prompt ? (
                   <Link
-                    href={`/report/123/task-agent/${task.taskAgentId}`}
+                    href={`/report/${reportId}/task-agent/${task.id}`}
                     className="flex gap-2 items-center"
                   >
-                    {task.name}
+                    {task.sub_task}
                     <ExternalLinkIcon size={14} />
                   </Link>
                 ) : (
-                  task.name
+                  task.sub_task
                 )}
               </motion.li>
             ))}

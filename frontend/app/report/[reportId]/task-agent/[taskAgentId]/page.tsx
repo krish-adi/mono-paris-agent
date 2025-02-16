@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import TaskAgentChat from "./taskAgentChat";
+import { createClient } from "@/utils/supabase/client";
 
 export default async function TaskAgent({
   params,
