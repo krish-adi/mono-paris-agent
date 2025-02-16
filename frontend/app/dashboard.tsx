@@ -51,7 +51,9 @@ type InputReportWithTasks = Tables<"reports"> & {
     job_sub_tasks: Tables<"job_sub_tasks">[];
   })[];
 };
-type LocalSubTask = Tables<"job_sub_tasks">;
+type LocalSubTask = Tables<"job_sub_tasks"> & {
+  time_percentage: number | null;
+};
 type ReportWithTasks = Tables<"reports"> & {
   job_sub_tasks: LocalSubTask[];
 };
@@ -79,7 +81,12 @@ const getReport = async (reportId: string) => {
   return {
     ...report,
     job_sub_tasks: report.job_tasks
-      .flatMap((j) => j.job_sub_tasks)
+      .flatMap((j) =>
+        j.job_sub_tasks.map((s) => ({
+          ...s,
+          time_percentage: j.time_percentage,
+        }))
+      )
       .map((j) => ({
         ...j,
         task_category:
@@ -181,12 +188,11 @@ export function Dashboard({ reportId }: { reportId: string }) {
     return null;
   }
 
-  const taskCategories: DisplayTaskCategory[] = [
+  const tempTaskCategories: DisplayTaskCategory[] = [
     {
       icon: User,
       title: "Human Only",
-      percentage: 57,
-      color: "bg-blue-600",
+      color: "bg-gray-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "HUMAN_ONLY"
       ),
@@ -194,7 +200,6 @@ export function Dashboard({ reportId }: { reportId: string }) {
     {
       icon: Settings,
       title: "Human + AI",
-      percentage: 37,
       color: "bg-purple-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "AUGMENTATION_POSSIBLE"
@@ -203,13 +208,39 @@ export function Dashboard({ reportId }: { reportId: string }) {
     {
       icon: Cpu,
       title: "Automation Ready",
-      percentage: 6,
       color: "bg-gray-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "AUTOMATION_READY"
       ),
     },
-  ];
+  ].map((c) => ({
+    ...c,
+    percentage: c.tasks.reduce(
+      (acc, task) => acc + (task.time_percentage || 0),
+      0
+    ),
+  }));
+
+  const totalpercentage = tempTaskCategories.reduce(
+    (acc, category) => acc + category.percentage,
+    0
+  );
+
+  const taskCategories: DisplayTaskCategory[] = tempTaskCategories.map((c) => ({
+    ...c,
+    percentage: (c.percentage / totalpercentage) * 100,
+  }));
+
+  const indexScore =
+    taskCategories
+      .flatMap((c) => c.tasks)
+      .reduce(
+        (acc, task) =>
+          acc + ((task.best_score || 0) * (task.time_percentage || 0) || 0),
+        0
+      ) / 100;
+
+  console.log({ taskCategories });
 
   const dashboardData: DashboardData = {
     title: "4. Final Dashboard",
@@ -238,16 +269,13 @@ export function Dashboard({ reportId }: { reportId: string }) {
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
           >
-            {dashboardData.irreplaceablePercentage}%
+            {indexScore}
           </motion.div>
           <div className="text-xl text-blue-600">Irreplaceable</div>
         </div>
 
         <div className="space-y-6">
-          <Progress
-            value={dashboardData.irreplaceablePercentage}
-            className="h-4"
-          />
+          <Progress value={indexScore} className="h-4" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -329,27 +357,30 @@ function TaskCategoryDetailed({
           <div className="text-2xl font-bold mb-2">{percentage}%</div>
           <Progress value={percentage} className="h-2 mb-4" />
           <ul className="space-y-1 mb-4">
-            {tasks.map((task, index) => (
-              <motion.li
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="text-sm text-gray-600"
-              >
-                {task.llm_prompt ? (
-                  <Link
-                    href={`/report/${reportId}/subtask/${task.id}`}
-                    className="flex gap-2 items-center"
-                  >
-                    {task.sub_task}
-                    <ExternalLinkIcon size={14} />
-                  </Link>
-                ) : (
-                  task.sub_task
-                )}
-              </motion.li>
-            ))}
+            {tasks.map((task, index) => {
+              const label = `${task.sub_task}`;
+              return (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="text-sm text-gray-600"
+                >
+                  {task.llm_prompt ? (
+                    <Link
+                      href={`/report/${reportId}/subtask/${task.id}`}
+                      className="flex gap-2 items-center"
+                    >
+                      {label}
+                      <ExternalLinkIcon size={14} />
+                    </Link>
+                  ) : (
+                    label
+                  )}
+                </motion.li>
+              );
+            })}
           </ul>
         </CardContent>
       </Card>
