@@ -60,7 +60,11 @@ jtt_agent = Agent(
     model=settings.model,
     system_prompt=JOB_TO_TASKS_PROMPT,
     result_type=JobSkillsAndTasks,
-    model_settings=settings.model_settings,
+    model_settings={
+        **settings.model_settings,
+        "timeout": 60.0,  # Increase timeout to 60 seconds
+        "request_timeout": 60.0
+    },
     retries=settings.max_retries,
     deps_type=JobContext
 )
@@ -88,27 +92,6 @@ async def search_job_info(ctx: RunContext[JobContext], query: str) -> str:
     else:
         content = "No results found"
     return content
-
-@jtt_agent.tool
-async def ask_expert(ctx: RunContext[JobContext], question: str) -> str:
-    """Ask an AI career expert about specific aspects of a job role.
-
-    This tool provides expert insights about job responsibilities, requirements,
-    and typical day-to-day tasks.
-
-    Args:
-        ctx: The run context containing job information
-        question: A specific question about the job role
-
-    Returns:
-        str: Expert response with detailed information about the job
-    """
-    system_prompt = """You are an expert career advisor with deep knowledge of various industries 
-    and job roles. Provide detailed, practical information about job responsibilities, 
-    requirements, and day-to-day tasks."""
-    
-    response = await ask_perplexity(question, system_prompt=system_prompt)
-    return response
 
 async def job_to_tasks_agent(job_title: str, job_description: str) -> JobSkillsAndTasks:
     context = JobContext(job_title=job_title, job_description=job_description)

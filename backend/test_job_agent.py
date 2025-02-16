@@ -1,5 +1,6 @@
 import asyncio
 import dotenv
+import traceback
 dotenv.load_dotenv()
 import logfire
 
@@ -30,6 +31,8 @@ async def test_job_analysis():
             print(f"  {task.description}")
     except Exception as e:
         print("Analysis error:", str(e))
+        print("\nFull traceback:")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     print("Running job analysis tests...")
