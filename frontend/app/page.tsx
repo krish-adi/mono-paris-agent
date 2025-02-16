@@ -168,7 +168,7 @@ export default function Home() {
           <Button
             type="submit"
             className={`mt-2  
-              bg-blue-900 text-white hover:bg-blue-800 focus:ring-blue-500
+              bg-blue-600 text-white hover:bg-blue-800 focus:ring-blue-500
               flex gap-2 items-center justify-center
               ${
                 isLoading || isAutofillLoading
