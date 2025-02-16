@@ -10,7 +10,7 @@ from server.db.client import database
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup events
-    load_dotenv()
+    load_dotenv(".env")
     settings.load_settings()
     await database.startup()
     yield

@@ -3,19 +3,26 @@ from supabase import AsyncClient, acreate_client
 
 
 class Database:
-    _instance = None
+    def __init__(self):
+        self._instance: AsyncClient = None
 
-    async def startup(cls) -> AsyncClient:
-        _instance = await acreate_client(settings.supabase_url, settings.supabase_key)
-        return _instance
+    async def startup(self) -> AsyncClient:
+        self._instance = await acreate_client(
+            settings.supabase_url, settings.supabase_key
+        )
+        print("Database initialized")
+        return self._instance
 
-    async def shutdown(cls) -> None:
+    async def shutdown(self) -> None:
         pass
 
-    def client(cls) -> AsyncClient:
-        if cls._instance is None:
-            cls._instance = Database.startup()
-        return cls._instance
+    def client(self) -> AsyncClient:
+        # if self._instance is None:
+        #     self._instance = await self.startup()
+        if self._instance is None:
+            raise Exception("Database not initialized")
+
+        return self._instance
 
 
 # Initialize database class object

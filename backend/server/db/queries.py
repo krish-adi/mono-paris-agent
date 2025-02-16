@@ -1,7 +1,7 @@
 from server.db.client import database
 from server.db.models import TaskItem
 from typing import List
-
+from uuid import uuid4
 
 async def create_user_request(
     report_id: str,
@@ -56,7 +56,7 @@ async def complete_job_description_agent(
             .table("job_tasks")
             .insert(
                 {
-                    "id": task.id,
+                    "id": str(uuid4()),
                     "report_id": report_id,
                     "task": task.task,
                     "description": task.description,

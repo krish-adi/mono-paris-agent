@@ -24,7 +24,7 @@ async def request_agent_run(job_title: str, job_description: Optional[str] = Non
     """
     Request an agent run and return the report id to keep track of the request.
     """
-    report_id = uuid4()
+    report_id = str(uuid4())
     _response_1 = await create_user_request(report_id, job_title)
     print(_response_1)
     """

@@ -3,6 +3,7 @@ from typing import List
 
 
 class TaskItem(BaseModel):
+    id: str
     task: str
     description: str
     timePercentage: float
