@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 const descriptions = [
   "Calling Agent",
@@ -47,10 +48,37 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const title = (e.currentTarget as any).title.value;
+    const description = (e.currentTarget as any).description.value;
+
+    // console.log({ title, description });
+
+    const apicall = await fetch(
+      "https://amazing-filia-krishadi-8e7c5ed4.koyeb.app/agent/request",
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          job_title: title,
+          job_description: description || undefined,
+        }),
+      }
+    );
+    const res = z
+      .object({
+        report_id: z.string(),
+      })
+      .parse(await apicall.json());
+    router.push(`/report/${res.report_id}`);
     setIsLoading(false);
-    router.push("/report/123");
+
+    // Mock API call
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
+    // setIsLoading(false);
+    // router.push("/report/123");
   };
 
   return (
@@ -74,6 +102,7 @@ export default function Home() {
           </div>
           <Form.Control asChild>
             <Input
+              name="title"
               type="text"
               required
               placeholder="Head of Developer Relations"
@@ -92,6 +121,7 @@ export default function Home() {
           </div>
           <Form.Control asChild>
             <Textarea
+              name="description"
               placeholder="Enter job description (optional)"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
