@@ -5,6 +5,14 @@ from server.routes import router
 from contextlib import asynccontextmanager
 from server.settings import settings
 from server.db.client import database
+import nest_asyncio
+import logfire
+
+nest_asyncio.apply()
+logfire.configure(
+    service_name="backend-irreplaceable",
+    send_to_logfire=False,
+)
 
 
 @asynccontextmanager

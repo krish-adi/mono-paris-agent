@@ -10,9 +10,10 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic-settings>=2.7.1",
     "pydantic>=2.10.6",
-    "pydantic-ai>=0.0.24",
+    "pydantic-ai[logfire]>=0.0.24",
     "python-dotenv>=1.0.1",
     "uvicorn>=0.34.0",
     "supabase>=2.13.0",
     "logfire[httpx]>=3.5.3",
+    "nest-asyncio>=1.6.0",
 ]
