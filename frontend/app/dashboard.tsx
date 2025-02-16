@@ -153,7 +153,7 @@ export function Dashboard({ reportId }: { reportId: string }) {
       setReport(fetchedReport);
 
       // If report is not ready, continue polling
-      if (fetchedReport?.report_status !== "job_description_agent_completed") {
+      if (fetchedReport?.report_status !== "report_complete") {
         return false;
       }
       return true;
