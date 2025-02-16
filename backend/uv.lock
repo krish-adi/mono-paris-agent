@@ -131,7 +131,7 @@ dependencies = [
     { name = "httpx" },
     { name = "logfire", extra = ["httpx"] },
     { name = "pydantic" },
-    { name = "pydantic-ai" },
+    { name = "pydantic-ai", extra = ["logfire"] },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
     { name = "supabase" },
@@ -145,7 +145,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "logfire", extras = ["httpx"], specifier = ">=3.5.3" },
     { name = "pydantic", specifier = ">=2.10.6" },
-    { name = "pydantic-ai", specifier = ">=0.0.24" },
+    { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.0.24" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "supabase", specifier = ">=2.13.0" },
@@ -1003,6 +1003,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/10/8a/0a9ff28b5956077f162dec57e96eeb5ea322cb1bba9c85f02d008966e1b4/pydantic_ai-0.0.24.tar.gz", hash = "sha256:7af076cbdb5f4c6ac8fae5273f02b67130b69d1cdaed87a022f79f42449f83a9", size = 71314 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/96/94/e7dbc5acf86a24442d21df4b8453a267614c3a6d9cd52ce0c685de2d7d19/pydantic_ai-0.0.24-py3-none-any.whl", hash = "sha256:dc75f01be0218c2f46fe90a3d43ef4700d764bfbe6240fca9c18a4509f6b86cf", size = 9837 },
+]
+
+[package.optional-dependencies]
+logfire = [
+    { name = "logfire" },
 ]
 
 [[package]]
