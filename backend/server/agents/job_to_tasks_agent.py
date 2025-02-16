@@ -1,9 +1,11 @@
 from pydantic import BaseModel
-from pydantic_ai import Agent
+from pydantic_ai import Agent, RunContext
 from typing import List
 
 from server.settings import settings
 from server.agents.message_logger import log_messages
+from server.services.search import search_content
+from server.services.perplexity import ask_perplexity
 
 class TaskItem(BaseModel):
     task: str
@@ -21,89 +23,104 @@ class JobSkillsAndTasks(BaseModel):
     job_responsibilities: List[str]
     job_tasks: List[TaskItem]
 
-JOB_TO_TASKS_PROMPT = """Given a job title and job description, analyze and break down the role into ALL its components, including both core job functions AND administrative/bureaucratic tasks.
+JOB_TO_TASKS_PROMPT = """You are an expert job analyst. Your goal is to break down jobs into their detailed components, including both core functions and administrative tasks.
 
-Important: Make sure to include not just the primary responsibilities, but also all the secondary tasks that people in this role have to handle, such as:
-- Administrative paperwork
+You have access to two research tools:
+1. search_job_info: Use this to find real-world information about the job role
+2. ask_expert: Use this to get specific expert insights about job responsibilities
+
+First, use these tools to research the job and gather comprehensive information about:
+1. Common responsibilities and daily tasks
+2. Industry standards and requirements
+3. Real-world experiences from people in this role
+4. Administrative and secondary tasks that are often overlooked
+
+Then analyze all this information to create a detailed breakdown of the role.
+
+Important: Include ALL aspects of the job:
+- Core technical/professional duties
+- Administrative work and paperwork
 - Documentation and reporting
 - Meetings and communications
 - Compliance requirements
-- Time tracking and scheduling
-- Budget/expense management
-- Equipment/resource management
-- Training and certifications
-- Internal processes and procedures
+- Time management tasks
+- Budget/resource management
+- Training and professional development
+- Internal processes
 
-For example:
-- A teacher spends significant time on attendance reports, parent communications, and administrative paperwork
-- A freelance designer must handle client invoicing, tax documentation, and business development
-- A police officer dedicates substantial time to paperwork, court appearances, and mandatory training
+Make sure to use both research tools to validate your analysis and ensure completeness.
+"""
 
-You will receive input in the format:
-{job_title}
-{job_description}
+class JobContext(BaseModel):
+    job_title: str
+    job_description: str
 
-Please provide a JSON object with the following structure:
-{
-    "job_title": "Software Engineer",
-    "job_description": "Backend developer position focusing on Python",
-    "job_requirements": ["Bachelor's degree in CS", "3+ years experience", "Python expertise"],
-    "job_skills": ["Python", "SQL", "Git", "API Development", "Documentation", "Communication"],
-    "job_responsibilities": ["Develop backend services", "Maintain existing codebase", "Review code", "Collaborate with team members", "Ensure code quality"],
-    "job_tasks": [
-        {
-            "task": "Write code",
-            "description": "Implement new features and functionality in Python",
-            "timePercentage": 30.0
-        },
-        {
-            "task": "Code review",
-            "description": "Review pull requests and provide feedback to team members",
-            "timePercentage": 15.0
-        },
-        {
-            "task": "Technical design",
-            "description": "Create technical specifications for new features",
-            "timePercentage": 15.0
-        },
-        {
-            "task": "Meetings",
-            "description": "Attend daily standups, sprint planning, retrospectives, and other team meetings",
-            "timePercentage": 15.0
-        },
-        {
-            "task": "Documentation",
-            "description": "Write and maintain technical documentation, API specs, and internal wikis",
-            "timePercentage": 10.0
-        },
-        {
-            "task": "Administrative tasks",
-            "description": "Time tracking, expense reports, status updates, and other administrative duties",
-            "timePercentage": 5.0
-        },
-        {
-            "task": "Learning and training",
-            "description": "Keep up with new technologies, complete required trainings, and maintain certifications",
-            "timePercentage": 5.0
-        },
-        {
-            "task": "Production support",
-            "description": "Handle on-call duties, investigate production issues, and maintain system stability",
-            "timePercentage": 5.0
-        }
-    ]
-}"""
-
+# First create the agent without tools
 jtt_agent = Agent(
     model=settings.model,
     system_prompt=JOB_TO_TASKS_PROMPT,
     result_type=JobSkillsAndTasks,
     model_settings=settings.model_settings,
-    retries=settings.max_retries
+    retries=settings.max_retries,
+    deps_type=JobContext
 )
 
+@jtt_agent.tool
+async def search_job_info(ctx: RunContext[JobContext], query: str) -> str:
+    """Search the internet for information about a specific job or career.
+
+    This tool searches online resources to find detailed information about job roles,
+    responsibilities, and requirements.
+
+    Args:
+        ctx: The run context containing job information
+        query: A specific search query about the job role
+
+    Returns:
+        str: Formatted search results with relevant information about the job
+    """
+    results = await search_content(query)
+    if hasattr(results, 'results'):
+        content = "\n\n".join([
+            f"Source: {result.url}\n{result.text}" 
+            for result in results.results[:3]
+        ])
+    else:
+        content = "No results found"
+    return content
+
+@jtt_agent.tool
+async def ask_expert(ctx: RunContext[JobContext], question: str) -> str:
+    """Ask an AI career expert about specific aspects of a job role.
+
+    This tool provides expert insights about job responsibilities, requirements,
+    and typical day-to-day tasks.
+
+    Args:
+        ctx: The run context containing job information
+        question: A specific question about the job role
+
+    Returns:
+        str: Expert response with detailed information about the job
+    """
+    system_prompt = """You are an expert career advisor with deep knowledge of various industries 
+    and job roles. Provide detailed, practical information about job responsibilities, 
+    requirements, and day-to-day tasks."""
+    
+    response = await ask_perplexity(question, system_prompt=system_prompt)
+    return response
+
 async def job_to_tasks_agent(job_title: str, job_description: str) -> JobSkillsAndTasks:
-    input_message = f"JOB TITLE: {job_title}\n\n\nJOB DESCRIPTION: {job_description}"
-    result = await jtt_agent.run(input_message)
+    context = JobContext(job_title=job_title, job_description=job_description)
+    
+    input_message = f"""Please analyze this job thoroughly:
+
+JOB TITLE: {job_title}
+
+JOB DESCRIPTION: {job_description}
+
+Research this role thoroughly using the available tools before providing your final analysis."""
+
+    result = await jtt_agent.run(input_message, deps=context)
     log_messages("Job To Tasks", result.all_messages())
     return result.data

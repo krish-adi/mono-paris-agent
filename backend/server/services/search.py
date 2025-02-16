@@ -1,7 +1,7 @@
 from exa_py import Exa
 from server.settings import settings
 
-def search_content(query: str, max_characters: int = 3000) -> dict:
+async def search_content(query: str, max_characters: int = 3000) -> dict:
     """
     Search for content using Exa API
     

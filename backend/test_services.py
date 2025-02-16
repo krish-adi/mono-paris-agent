@@ -4,27 +4,25 @@ dotenv.load_dotenv()
 from server.services.search import search_content
 from server.services.perplexity import ask_perplexity
 
-def test_search():
-    print("\nTesting search service...")
-    try:
-        result = search_content("What is Python programming language?")
-        print("Search successful!")
-        # The response format seems different, let's just print the whole result
-        print("Search result:", result)
-    except Exception as e:
-        print("Search error:", str(e))
+async def test_search():
+    result = await search_content("test query")
+    print("Search successful!")
+    print(f"Search result: {result}")
 
-def test_perplexity():
+async def test_perplexity():
     print("\nTesting perplexity service...")
     try:
-        result = ask_perplexity("What is Python programming language?")
+        result = await ask_perplexity("What is Python programming language?")
         print("Perplexity query successful!")
         print("Response:", result)
     except Exception as e:
         print("Perplexity error:", str(e))
 
+async def main():
+    await test_search()
+    await test_perplexity()
+
 if __name__ == "__main__":
-    print("Running service tests...")
-    test_search()
-    test_perplexity()
+    import asyncio
+    asyncio.run(main())
     print("\nTests completed!")

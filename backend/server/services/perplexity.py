@@ -1,3 +1,4 @@
+import httpx
 from openai import OpenAI
 from pydantic import BaseModel
 from typing import List, Optional
@@ -27,7 +28,7 @@ class PerplexityResponse(BaseModel):
     choices: List[PerplexityChoice]
     usage: PerplexityUsage
 
-def ask_perplexity(
+async def ask_perplexity(
     query: str, 
     system_prompt: str = None,
     max_tokens: int = None,
@@ -51,29 +52,20 @@ def ask_perplexity(
     Returns:
         str: Response content from Perplexity AI
     """
-
-    if not settings.perplexity_api_key:
-        raise ValueError("Perplexity API key is not set")
-
-    client = OpenAI(
-        api_key=settings.perplexity_api_key,
-        base_url="https://api.perplexity.ai"
-    )
+    url = "https://api.perplexity.ai/chat/completions"
     
-    messages = [
-        {
-            "role": "system",
-            "content": system_prompt or "Be precise and concise."
-        },
-        {
-            "role": "user",
-            "content": query
-        }
-    ]
-    
-    params = {
+    payload = {
         "model": "sonar-pro",
-        "messages": messages,
+        "messages": [
+            {
+                "role": "system",
+                "content": system_prompt or "Be precise and concise."
+            },
+            {
+                "role": "user",
+                "content": query
+            }
+        ],
         "temperature": temperature,
         "top_p": top_p,
         "presence_penalty": presence_penalty,
@@ -81,7 +73,15 @@ def ask_perplexity(
     }
     
     if max_tokens:
-        params["max_tokens"] = max_tokens
+        payload["max_tokens"] = max_tokens
     
-    response = client.chat.completions.create(**params)
-    return response.choices[0].message.content
+    headers = {
+        "Authorization": f"Bearer {settings.perplexity_api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
