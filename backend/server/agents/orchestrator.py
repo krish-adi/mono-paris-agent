@@ -1,10 +1,12 @@
-import logfire
 from server.settings import settings
 from pydantic import BaseModel
-from pydantic_ai import Agent
+from pydantic_ai import Agent, RunContext
 from typing import List
+from server.agents.test_design import create_test_case, TestCase
+from server.agents.agent_designer import design_agent, AgentDesign
+from server.agents.agent_evaluator import evaluate_agent, EvaluationResult
+from server.agents.message_logger import log_messages
 
-logfire.configure(token=settings.logfire_token)
 
 PROMPT = """
 
@@ -38,7 +40,8 @@ Here is how you should go about the task:
     "task_category": "HUMAN_ONLY" or "AUGMENTATION_POSSIBLE" or "AUTOMATION_READY",
     "reasoning": "one-two sentences explanation",
     "system_prompt": "the best performing system prompt for a tool that can complete this task", (leave this blank if the task is human only)
-    "tools_needed": "a list of tools that the LLM would need access to in order to complete this task with this system prompt" (leave this blank if the task is human only)
+    "tools_needed": "a list of tools that the LLM would need access to in order to complete this task with this system prompt" (leave this blank if the task is human only),
+    "best_score": the highest evaluation score achieved during testing (0-10, should be 0 for HUMAN_ONLY tasks)
 }
 
 Only return the JSON object, nothing else.
@@ -50,12 +53,33 @@ class OrchestratorResult(BaseModel):
     reasoning: str
     system_prompt: str | None
     tools_needed: List[str] | None
+    best_score: float
 
 orchestrator_agent = Agent(
     model=settings.model,
     system_prompt=PROMPT,
-    result_type=OrchestratorResult
+    result_type=OrchestratorResult,
+    model_settings=settings.model_settings,
+    retries=settings.max_retries
 )
+
+@orchestrator_agent.tool
+async def test_design_tool(ctx: RunContext[None], task: str, job_context: str) -> TestCase:
+    return await create_test_case(task, job_context)
+
+@orchestrator_agent.tool
+async def agent_design_tool(ctx: RunContext[None], task: str, test_case: str) -> AgentDesign:
+    return await design_agent(task, test_case)
+
+@orchestrator_agent.tool
+async def agent_evaluator_tool(
+    ctx: RunContext[None],
+    task: str,
+    test_case: str,
+    system_prompt: str,
+    expected_output: str
+) -> EvaluationResult:
+    return await evaluate_agent(task, test_case, system_prompt, expected_output)
 
 async def orchestrator(task: str, job_title: str, job_description: str) -> OrchestratorResult:
     context = f"""
@@ -64,4 +88,5 @@ JOB DESCRIPTION: {job_description}
 TASK TO EVALUATE: {task}
 """
     result = await orchestrator_agent.run(context)
+    log_messages("Orchestrator", result.all_messages())
     return result.data

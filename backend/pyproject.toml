@@ -13,5 +13,5 @@ dependencies = [
     "pydantic-ai>=0.0.24",
     "python-dotenv>=1.0.1",
     "uvicorn>=0.34.0",
-    "logfire>=3.5.3",
+    "logfire[httpx]>=3.5.3",
 ]

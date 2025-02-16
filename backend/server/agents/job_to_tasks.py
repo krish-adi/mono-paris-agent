@@ -3,6 +3,7 @@ from pydantic_ai import Agent
 from typing import List
 
 from server.settings import settings
+from server.agents.message_logger import log_messages
 
 class TaskItem(BaseModel):
     task: str
@@ -97,9 +98,12 @@ job_to_tasks_agent = Agent(
     model=settings.model,
     system_prompt=JOB_TO_TASKS_PROMPT,
     result_type=JobSkillsAndTasks,
+    model_settings=settings.model_settings,
+    retries=settings.max_retries
 )
 
 async def job_to_tasks(job_title: str, job_description: str) -> JobSkillsAndTasks:
     input_message = f"JOB TITLE: {job_title}\n\n\nJOB DESCRIPTION: {job_description}"
     result = await job_to_tasks_agent.run(input_message)
-    return result.data  # Access the parsed data through .data attribute
+    log_messages("Job To Tasks", result.all_messages())
+    return result.data
