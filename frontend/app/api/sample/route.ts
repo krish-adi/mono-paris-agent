@@ -44,7 +44,7 @@ export async function GET() {
       ],
     });
 
-    const cleanedJson = cleanJsonString(response.content[0].text);
+    const cleanedJson = cleanJsonString((response.content[0] as any).text);
     const result = JSON.parse(cleanedJson);
 
     return NextResponse.json(result);

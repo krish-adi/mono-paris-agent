@@ -17,7 +17,7 @@ const descriptions = [
   "Structuring Output",
 ];
 
-export function useLoadingAnimation(isLoading: boolean) {
+function useLoadingAnimation(isLoading: boolean) {
   const [currentDescriptionIndex, setCurrentDescriptionIndex] = useState(0);
 
   useEffect(() => {
