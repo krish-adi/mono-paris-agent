@@ -4,11 +4,12 @@ from fastapi import APIRouter
 from uuid import uuid4
 from server.settings import settings
 from server.db.queries import (
-    create_user_request,
-    complete_job_description_agent,
+    query_create_user_request,
+    query_complete_job_description_agent,
 )
 from server.agents.job_to_tasks_agent import job_to_tasks_agent
 from server.agents.subtask_agent import subtask_agent_run
+from server.db.models import TaskItem as DBTaskItem
 
 router = APIRouter()
 
@@ -23,19 +24,44 @@ async def test_agent():
         job_description = """We are looking for a Senior Software Engineer to join our backend team. 
             The ideal candidate will have strong Python experience and will be responsible 
             for designing and implementing scalable services."""
+        if job_description is None:
+            job_description = f"This is a {job_title} position that requires relevant experience and skills."
+        report_id = str(uuid4())
+        # TODO: return the report_id
+        _response_1 = await query_create_user_request(report_id, job_title)
+        print(_response_1)
         result = await job_to_tasks_agent(job_title, job_description)
         print("\nAnalysis successful!")
         print("\nRequirements:", result.job_requirements)
         print("\nSkills:", result.job_skills)
         print("\nResponsibilities:", result.job_responsibilities)
         print("\nDetailed Tasks:")
-        for task in result.job_tasks:
+        # conver the tasks to fit the database task item schema
+        _converted_tasks = [
+            DBTaskItem(
+                id=str(uuid4()),
+                task=task.task,
+                description=task.description,
+                timePercentage=task.timePercentage,
+            )
+            for task in result.job_tasks
+        ]
+        _response_2 = await query_complete_job_description_agent(
+            report_id,
+            result.job_description,
+            result.job_requirements,
+            result.job_skills,
+            result.job_responsibilities,
+            _converted_tasks,
+        )
+        print(_response_2)
+        for task in _converted_tasks:
             print(f"\n• {task.task} ({task.timePercentage}%)")
             print(f"  {task.description}")
-        print("\n\nTesting subtask agent...")
-        for task in result.job_tasks:
-            subtask_result = await subtask_agent_run(task.task, job_title, job_description)
-            print(f"\n\nSubtask Result: {subtask_result}")            
+            subtask_result = await subtask_agent_run(
+                task.task, job_title, job_description
+            )
+            print(f"Subtask Result: {subtask_result}\n\n")
 
     except Exception as e:
         print("Analysis error:", str(e))
@@ -59,7 +85,7 @@ async def request_agent_run(job_title: str, job_description: Optional[str] = Non
     Request an agent run and return the report id to keep track of the request.
     """
     report_id = str(uuid4())
-    _response_1 = await create_user_request(report_id, job_title)
+    _response_1 = await query_create_user_request(report_id, job_title)
     print(_response_1)
     return {
         "report_id": report_id,
@@ -72,7 +98,7 @@ async def test_agent_run(job_title: str, job_description: Optional[str] = None):
     Request an agent run and return the report id to keep track of the request.
     """
     report_id = str(uuid4())
-    _response_1 = await create_user_request(report_id, job_title)
+    _response_1 = await query_create_user_request(report_id, job_title)
     print(_response_1)
     """
     Runs an agent that takes a job title and optional job description as input and generates
@@ -88,8 +114,8 @@ async def test_agent_run(job_title: str, job_description: Optional[str] = None):
         job_description = f"{job_title}: {job_description}"
 
     # Use the job_to_tasks agent to generate the complete breakdown
-    result = await job_to_tasks.job_to_tasks(job_title, job_description)
-    _response_2 = await complete_job_description_agent(
+    result = await job_to_tasks_agent(job_title, job_description)
+    _response_2 = await query_complete_job_description_agent(
         report_id,
         result.job_description,
         result.job_requirements,

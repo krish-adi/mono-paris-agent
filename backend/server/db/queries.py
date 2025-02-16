@@ -1,9 +1,8 @@
 from server.db.client import database
 from server.db.models import TaskItem
 from typing import List
-from uuid import uuid4
 
-async def create_user_request(
+async def query_create_user_request(
     report_id: str,
     job_title: str,
     report_status: str = "user_request_for_report_created",
@@ -24,7 +23,7 @@ async def create_user_request(
     return "user_request_for_report_created"
 
 
-async def complete_job_description_agent(
+async def query_complete_job_description_agent(
     report_id: str,
     job_description: str,
     job_requirements: List[str],
@@ -56,7 +55,7 @@ async def complete_job_description_agent(
             .table("job_tasks")
             .insert(
                 {
-                    "id": str(uuid4()),
+                    "id": task.id,
                     "report_id": report_id,
                     "task": task.task,
                     "description": task.description,
