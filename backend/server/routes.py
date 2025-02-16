@@ -3,6 +3,10 @@ from fastapi import APIRouter
 from uuid import uuid4
 from server.agents import job_to_tasks
 from server.settings import settings
+from server.db.queries import (
+    create_user_request,
+    complete_job_description_agent,
+)
 
 router = APIRouter()
 
@@ -16,18 +20,13 @@ def read_root():
 
 
 @router.post("/agent/request")
-def request_agent_run(job_title: str, job_description: Optional[str] = None):
+async def request_agent_run(job_title: str, job_description: Optional[str] = None):
     """
     Request an agent run and return the report id to keep track of the request.
     """
     report_id = uuid4()
-    return {"report_id": report_id}
-
-
-@router.post("/agent/job-description")
-async def build_complete_job_description(
-    job_title: str, job_description: Optional[str] = None
-):
+    _response_1 = await create_user_request(report_id, job_title)
+    print(_response_1)
     """
     Runs an agent that takes a job title and optional job description as input and generates
     a complete job description, including tasks, required skills, and responsibilities.
@@ -43,9 +42,18 @@ async def build_complete_job_description(
 
     # Use the job_to_tasks agent to generate the complete breakdown
     result = await job_to_tasks.job_to_tasks(job_title, job_description)
+    _response_2 = await complete_job_description_agent(
+        report_id,
+        result.job_description,
+        result.job_requirements,
+        result.job_skills,
+        result.job_responsibilities,
+        result.job_tasks,
+    )
+    print(_response_2)
 
     # Convert TaskItem objects to dictionaries with model_dump() instead of dict()
-    return {
+    _response_2 = {
         "job_title": result.job_title,
         "job_description": result.job_description,
         "job_requirements": result.job_requirements,
@@ -53,10 +61,13 @@ async def build_complete_job_description(
         "job_responsibilities": result.job_responsibilities,
         "job_tasks": [task.model_dump() for task in result.job_tasks],
     }
+    return {
+        "report_id": report_id,
+    }
 
 
 @router.post("/agent/job-task-sub-tasks")
-def build_job_task_sub_tasks(
+async def build_job_task_sub_tasks(
     job_task: str,
     job_description: str,
     job_title: str,
@@ -86,7 +97,7 @@ def build_job_task_sub_tasks(
 
 
 @router.post("/agent/sub-task-with-agent")
-def build_sub_task_with_agent(
+async def build_sub_task_with_agent(
     job_task_sub_task: str,
     job_task: str,
     job_description: str,
@@ -120,7 +131,7 @@ def build_sub_task_with_agent(
 
 
 @router.post("/agent/job-automation-index")
-def build_job_automation_index(
+async def build_job_automation_index(
     job_title: str,
     job_description: str,
     # List of sub-tasks for a job task, amount of time spent doing it, automation index, and system prompt

@@ -1,5 +1,5 @@
 from server.db.client import database
-from server.db.models import TaskItem, JobSkillsAndTasks, JobTasks
+from server.db.models import TaskItem
 from typing import List
 
 
@@ -20,8 +20,8 @@ async def create_user_request(
         )
         .execute()
     )
-
-    return data
+    print("user_request_for_report_created", data)
+    return "user_request_for_report_created"
 
 
 async def complete_job_description_agent(
@@ -33,7 +33,7 @@ async def complete_job_description_agent(
     job_tasks: List[TaskItem],
     status: str = "job_description_agent_completed",
 ):
-    await (
+    data = await (
         database.client()
         .table("reports")
         .update(
@@ -48,9 +48,10 @@ async def complete_job_description_agent(
         .eq("id", report_id)
         .execute()
     )
+    print("job_description_agent_completed", data)
 
     for task in job_tasks:
-        await (
+        data = await (
             database.client()
             .table("job_tasks")
             .insert(
@@ -65,6 +66,7 @@ async def complete_job_description_agent(
             )
             .execute()
         )
+        print("job_task_created", data)
     return "Job description agent completed"
 
 
