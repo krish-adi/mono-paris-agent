@@ -69,11 +69,16 @@ async def query_complete_job_description_agent(
     return "Job description agent completed"
 
 
-async def create_job_task_subtask(
+async def query_create_job_task_subtask(
     sub_task_id: str,
     job_task_id: str,
     sub_task: str,
     description: str,
+    task_category: str,
+    reasoning: str,
+    llm_prompt: str,
+    tools_needed: List[str],
+    best_score: float,
 ):
     await (
         database.client()
@@ -84,6 +89,11 @@ async def create_job_task_subtask(
                 "task_id": job_task_id,
                 "sub_task": sub_task,
                 "description": description,
+                "task_category": task_category,
+                "reasoning": reasoning,
+                "llm_prompt": llm_prompt,
+                "tools_needed": tools_needed,
+                "best_score": best_score,
                 "job_sub_task_status": "job_sub_task_created",
             }
         )
