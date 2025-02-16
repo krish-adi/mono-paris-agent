@@ -2,6 +2,7 @@ from server.db.client import database
 from server.db.models import TaskItem
 from typing import List
 
+
 async def query_create_user_request(
     report_id: str,
     job_title: str,
@@ -99,3 +100,21 @@ async def query_create_job_task_subtask(
         )
         .execute()
     )
+
+
+async def query_update_report_complete(
+    report_id: str,
+    status: str = "report_complete",
+):
+    data = await (
+        database.client()
+        .table("reports")
+        .update(
+            {
+                "report_status": status,
+            }
+        )
+        .eq("id", report_id)
+        .execute()
+    )
+    print("report_complete", data)

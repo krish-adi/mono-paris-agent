@@ -3,6 +3,7 @@ from uuid import uuid4
 from server.db.queries import (
     query_complete_job_description_agent,
     query_create_job_task_subtask,
+    query_update_report_complete,
 )
 from server.agents.job_to_tasks_agent import job_to_tasks_agent
 from server.agents.subtask_agent import subtask_agent_run
@@ -60,6 +61,8 @@ async def complete_agent(report_id: str, job_title: str, job_description: str = 
                 best_score=subtask_result.best_score,
             )
             print(f"Subtask Result: {subtask_result}\n\n")
+
+        await query_update_report_complete(report_id)
 
     except Exception as e:
         print("Analysis error:", str(e))
