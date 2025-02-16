@@ -91,6 +91,52 @@ const getReport = async (reportId: string) => {
   } satisfies ReportWithTasks;
 };
 
+function LoadingSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="bg-blue-50 rounded-2xl p-8 mb-8">
+        <div className="text-center mb-8">
+          <div className="h-6 bg-gray-200 rounded w-48 mx-auto mb-4" />
+          <div className="h-16 w-32 bg-gray-300 rounded mx-auto mb-2" />
+          <div className="h-6 bg-gray-200 rounded w-32 mx-auto" />
+        </div>
+
+        <div className="h-4 bg-gray-200 rounded mb-8" />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg p-6 shadow">
+              <div className="h-6 bg-gray-200 rounded w-24 mb-4" />
+              <div className="h-8 bg-gray-300 rounded mb-2" />
+              <div className="h-2 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-blue-50 rounded-lg p-4 mb-8">
+        <div className="h-4 bg-gray-200 rounded w-48 mb-2" />
+        <div className="h-20 bg-gray-200 rounded" />
+      </div>
+
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-lg p-6 shadow">
+            <div className="h-6 bg-gray-200 rounded w-32 mb-4" />
+            <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
+            <div className="h-2 bg-gray-200 rounded mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 bg-gray-100 rounded" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Dashboard({ reportId }: { reportId: string }) {
   const [report, setReport] = useState<ReportWithTasks | null>(null);
 
@@ -122,11 +168,11 @@ export function Dashboard({ reportId }: { reportId: string }) {
   }, [reportId]);
 
   if (!report) {
-    return <div>Loading...</div>;
+    return <LoadingSkeleton />;
   }
 
   if (report.report_status !== "job_description_agent_completed") {
-    return <div>Analyzing your job description...</div>;
+    return <LoadingSkeleton />;
   }
 
   console.log({ report });
