@@ -156,7 +156,7 @@ export function Dashboard({ reportId }: { reportId: string }) {
     },
     {
       icon: Cpu,
-      title: "AUTOMATION_READY",
+      title: "Automation Ready",
       percentage: 6,
       color: "bg-gray-500",
       tasks: report.job_sub_tasks.filter(
