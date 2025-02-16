@@ -3,17 +3,52 @@
 import { useState } from "react";
 import * as Form from "@radix-ui/react-form";
 import { Button } from "@/components/ui/button";
+import { Loader2, SparklesIcon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dashboard } from "./components/dashboard";
+
+const descriptions = [
+  "Calling Agent",
+  "Refining Request",
+  "Structuring Output",
+];
+
+export function useLoadingAnimation(isLoading: boolean) {
+  const [currentDescriptionIndex, setCurrentDescriptionIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setCurrentDescriptionIndex(0);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setCurrentDescriptionIndex(
+        (prevIndex) => (prevIndex + 1) % descriptions.length
+      );
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, [isLoading]);
+
+  return {
+    currentDescription: descriptions[currentDescriptionIndex],
+  };
+}
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { currentDescription } = useLoadingAnimation(isLoading);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
     // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setLoading(false);
-    alert("Form submitted");
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    setIsLoading(false);
   };
 
   return (
@@ -31,10 +66,18 @@ export default function Home() {
               >
                 Please enter a job title
               </Form.Message>
+              <Button
+                size="sm"
+                className="flex gap-1"
+                variant="ghost"
+                type="button"
+              >
+                <SparklesIcon size="14" /> Generate
+              </Button>
             </div>
           </div>
           <Form.Control asChild>
-            <input
+            <Input
               type="text"
               required
               placeholder="Head of Developer Relations"
@@ -49,7 +92,7 @@ export default function Home() {
             </Form.Label>
           </div>
           <Form.Control asChild>
-            <textarea
+            <Textarea
               placeholder="Enter job description (optional)"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
@@ -59,14 +102,47 @@ export default function Home() {
           <Button
             type="submit"
             className={`mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? "Submitting..." : "Submit"}
+            {isLoading ? "Submitting..." : "Submit"}
           </Button>
         </Form.Submit>
       </Form.Root>
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "linear",
+              }}
+              className="mb-4"
+            >
+              <Loader2 className="w-8 h-8 text-blue-500" />
+            </motion.div>
+            <motion.p
+              key={currentDescription}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5 }}
+              className="text-gray-600 font-medium"
+            >
+              {currentDescription}
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <Dashboard />
     </main>
   );
 }
