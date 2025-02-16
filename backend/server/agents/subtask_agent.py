@@ -44,6 +44,8 @@ Here is how you should go about the task:
     "best_score": the highest evaluation score achieved during testing (0-10, should be 0 for HUMAN_ONLY tasks)
 }
 
+If you have to iterate more than 3 times and can't get it to work, return HUMAN_ONLY.
+
 Only return the JSON object, nothing else.
 
 """
