@@ -1,19 +1,47 @@
 "use client";
 import { motion } from "framer-motion";
-import { Send, ArrowLeft, PaperclipIcon } from "lucide-react";
+import { Send, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
-import { FileUpload } from "@/components/fileUpload";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+const CodeBlock = ({ inline, className, children }: any) => {
+  if (inline) {
+    return <code className="rounded px-1.5 py-0.5 text-sm">{children}</code>;
+  }
+
+  const language = /language-(\w+)/.exec(className || "")?.[1] || "text";
+  return (
+    <div className="relative rounded-md my-4">
+      <div className="absolute right-2 top-2 text-xs text-muted-foreground px-2 py-1 rounded bg-background/90">
+        {language}
+      </div>
+      <SyntaxHighlighter
+        language={language}
+        style={vscDarkPlus}
+        className="rounded-md ! !mt-0 !mb-0"
+        showLineNumbers
+        customStyle={{
+          margin: 0,
+          padding: "1.5rem 1rem",
+          fontSize: "0.9rem",
+        }}
+      >
+        {String(children).trim()}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
 
 export default function TaskAgentChat({
   reportId,
@@ -35,7 +63,6 @@ export default function TaskAgentChat({
   console.log(messages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showFileUpload, setShowFileUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -48,34 +75,6 @@ export default function TaskAgentChat({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-  };
-
-  const handleFilesSelected = async (files: File[]) => {
-    const filesContent = await Promise.all(
-      files.map(async (file) => {
-        const content = await file.text();
-        return {
-          name: file.name,
-          content,
-          type: file.type,
-        };
-      })
-    );
-
-    const fileMessage = `Attached files:\n${filesContent
-      .map((file) => `\n# ${file.name}\n\`\`\`\n${file.content}\n\`\`\``)
-      .join("\n")}`;
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: fileMessage,
-      createdAt: new Date(),
-    };
-
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
-    setShowFileUpload(false);
-    handleMessageSubmit(userMessage);
   };
 
   const handleMessageSubmit = async (message: Message) => {
@@ -209,17 +208,7 @@ export default function TaskAgentChat({
                     <ReactMarkdown
                       rehypePlugins={[rehypeRaw, rehypeSanitize]}
                       components={{
-                        pre: ({ node, ...props }) => (
-                          <div className="overflow-auto rounded-lg bg-muted p-4">
-                            <pre {...props} />
-                          </div>
-                        ),
-                        code: ({ node, ...props }) => (
-                          <code
-                            className="rounded bg-muted px-1.5 py-0.5"
-                            {...props}
-                          />
-                        ),
+                        code: CodeBlock,
                       }}
                     >
                       {message.content}
@@ -234,39 +223,27 @@ export default function TaskAgentChat({
       </ScrollArea>
 
       <div className="space-y-4">
-        {showFileUpload && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-          >
-            <FileUpload onFilesSelected={handleFilesSelected} />
-          </motion.div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex gap-2 items-end">
-          <Textarea
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message here..."
-            className="flex-grow min-h-[44px] p-2"
-            aria-label="Message input"
-          />
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => setShowFileUpload(!showFileUpload)}
-              aria-label="Attach files"
-            >
-              <PaperclipIcon className="h-4 w-4" />
-            </Button>
-            <Button type="submit" disabled={isLoading} size="lg">
-              <Send className="mr-2 h-4 w-4" />
-              Send
-            </Button>
+        <form onSubmit={handleSubmit} className="relative flex gap-2">
+          <div className="relative flex-1 bg-background rounded-md border">
+            <Textarea
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message here..."
+              className="min-h-[40px] resize-none border-0 focus-visible:ring-0 bg-transparent shadow-none"
+              aria-label="Message input"
+            />
+            <div className="flex justify-end p-2">
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                disabled={isLoading}
+                className="h-8 w-8 hover:bg-accent"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </form>
       </div>

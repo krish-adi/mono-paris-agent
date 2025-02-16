@@ -29,15 +29,10 @@ export async function POST(req: Request) {
       system: `You are Claude, an AI assistant. Please follow these guidelines:
   - Provide concise, direct answers focused on the user's question
   - Use a friendly but professional tone
-  - Break down complex topics into clear explanations
-  - If unsure about something, acknowledge the uncertainty
-  - For code questions, include examples and explain key concepts
-  - Format responses using markdown when appropriate
-  - Avoid speculating about events after April 2024
-  - Never share personal data or sensitive information
+  - Keep responses focused and structured
+  - Use markdown formatting when appropriate
   
-  Current conversation context: This is a continuing conversation with session ID ${sessionId}.
-  Current task context: Helping user with a technical question about ${messages[messages.length - 1].content}`,
+  Current conversation context: This is a continuing conversation with session ID ${sessionId}.`,
       messages: messages.map((m: Message) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
@@ -66,11 +61,15 @@ export async function POST(req: Request) {
         "Transfer-Encoding": "chunked",
       },
     });
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (error: any) {
+    console.error("API Error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      {
+        error: "Internal server error",
+        details: error?.error?.message || "Unknown error",
+        type: error?.error?.type || "unknown",
+      },
+      { status: error?.status || 500 }
     );
   }
 }

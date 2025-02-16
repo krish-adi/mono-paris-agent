@@ -9,10 +9,10 @@ export default function index() {
         IRREPLACABLE
       </Link>
       <div className="flex items-center gap-2">
-        <Link href="/">Home</Link>
+        {/* <Link href="/">Home</Link>
         <Link href="/sign-in">Sign In</Link>
         <Link href="/sign-up">Sign Up</Link>
-        <Link href="/u">Console</Link>
+        <Link href="/u">Console</Link> */}
         <ThemeSwitcher />
       </div>
     </nav>
