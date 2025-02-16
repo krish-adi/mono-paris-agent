@@ -155,7 +155,7 @@ export default function TaskAgentChat({
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className="container mx-auto p-4 pb-0">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -181,7 +181,7 @@ export default function TaskAgentChat({
         </Card>
       </motion.div>
 
-      <ScrollArea className="h-[60vh] rounded-md border p-4 mb-4">
+      <ScrollArea className="h-[60vh] rounded-md p-4 mb-4">
         <div className="space-y-4">
           {messages.map((message) => (
             <motion.div
@@ -233,7 +233,7 @@ export default function TaskAgentChat({
               className="min-h-[40px] resize-none border-0 focus-visible:ring-0 bg-transparent shadow-none"
               aria-label="Message input"
             />
-            <div className="flex justify-end p-2">
+            <div className="flex justify-end p-2 pb-0">
               <Button
                 type="submit"
                 variant="ghost"
