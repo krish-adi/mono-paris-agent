@@ -237,13 +237,13 @@ export function Dashboard({ reportId }: { reportId: string }) {
   }));
 
   const indexScore =
-    taskCategories
+    (taskCategories
       .flatMap((c) => c.tasks)
       .reduce(
         (acc, task) =>
           acc + ((task.best_score || 0) * (task.time_percentage || 0) || 0),
         0
-      ) / 10;
+      ) || 0) / 10;
 
   console.log({ taskCategories });
 
