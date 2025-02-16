@@ -104,7 +104,9 @@ export default function Home() {
 
   return (
     <main className="flex-1 flex flex-col gap-6 px-8 max-w-3xl w-svw pt-10">
-      <h1 className="text-3xl font-bold text-gray-900">Generate your report</h1>
+      <h1 className="text-3xl font-normal text-gray-900">
+        How <span className="font-bold">IRREPLACABLE</span> are you?
+      </h1>
       <Form.Root onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Form.Field className="mb-2.5 grid" name="title">
           <div className="flex items-end justify-between">
@@ -115,13 +117,13 @@ export default function Home() {
             <Button
               size="sm"
               className="flex gap-1"
-              variant="ghost"
+              variant="outline"
               type="button"
               onClick={handleGetSample}
               disabled={isLoading || isAutofillLoading}
             >
               <SparklesIcon size="14" />
-              {isAutofillLoading ? "Loading..." : "Get Sample"}
+              {isAutofillLoading ? "Loading..." : "Generate Example"}
             </Button>
           </div>
           <Form.Control asChild>

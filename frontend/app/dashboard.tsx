@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Tables } from "@/lib/database.types";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Task = {
   name: string;
@@ -26,6 +27,7 @@ type DisplayTaskCategory = {
   title: string;
   percentage: number;
   color: string;
+  background: string;
   tasks: LocalSubTask[];
 };
 
@@ -192,7 +194,8 @@ export function Dashboard({ reportId }: { reportId: string }) {
     {
       icon: User,
       title: "Human Only",
-      color: "bg-gray-500",
+      background: "bg-green-500",
+      color: "text-green-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "HUMAN_ONLY"
       ),
@@ -200,7 +203,8 @@ export function Dashboard({ reportId }: { reportId: string }) {
     {
       icon: Settings,
       title: "Human + AI",
-      color: "bg-purple-500",
+      background: "bg-purple-500",
+      color: "text-purple-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "AUGMENTATION_POSSIBLE"
       ),
@@ -208,7 +212,8 @@ export function Dashboard({ reportId }: { reportId: string }) {
     {
       icon: Cpu,
       title: "Automation Ready",
-      color: "bg-gray-500",
+      background: "bg-orange-500",
+      color: "text-orange-500",
       tasks: report.job_sub_tasks.filter(
         (task) => task.task_category === "AUTOMATION_READY"
       ),
@@ -238,7 +243,7 @@ export function Dashboard({ reportId }: { reportId: string }) {
         (acc, task) =>
           acc + ((task.best_score || 0) * (task.time_percentage || 0) || 0),
         0
-      ) / 100;
+      ) / 10;
 
   console.log({ taskCategories });
 
@@ -269,13 +274,18 @@ export function Dashboard({ reportId }: { reportId: string }) {
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
           >
-            {indexScore}
+            {indexScore}%
           </motion.div>
           <div className="text-xl text-blue-600">Irreplaceable</div>
         </div>
 
         <div className="space-y-6">
-          <Progress value={indexScore} className="h-4" />
+          <Progress
+            value={indexScore}
+            color="#1e3a8a"
+            className="h-4"
+            indicatorClass="bg-blue-900"
+          ></Progress>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -307,6 +317,7 @@ function TaskCategorySummary({
   title,
   percentage,
   color,
+  background,
 }: DisplayTaskCategory) {
   return (
     <motion.div
@@ -316,14 +327,18 @@ function TaskCategorySummary({
     >
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={cn("flex items-center gap-2")}>
             <Icon className={`w-5 h-5 ${color.replace("bg-", "text-")}`} />
             {title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold mb-2">{percentage}%</div>
-          <Progress value={percentage} className="h-2 mb-4" />
+          <Progress
+            value={percentage}
+            className="h-2 mb-4"
+            indicatorClass={background}
+          />
         </CardContent>
       </Card>
     </motion.div>
@@ -336,6 +351,7 @@ function TaskCategoryDetailed({
   percentage,
   color,
   tasks,
+  background,
   reportId,
 }: DisplayTaskCategory & {
   reportId: string;
@@ -355,7 +371,11 @@ function TaskCategoryDetailed({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold mb-2">{percentage}%</div>
-          <Progress value={percentage} className="h-2 mb-4" />
+          <Progress
+            value={percentage}
+            className="h-2 mb-4"
+            indicatorClass={background}
+          />
           <ul className="space-y-1 mb-4">
             {tasks.map((task, index) => {
               const label = `${task.sub_task}`;

@@ -188,7 +188,7 @@ export default function TaskAgentChat({
         <Card className="mb-4 ">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Chat with our Agent</span>
+              <span>Chat with our AI Agent</span>
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/report/${reportId}`}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -232,7 +232,7 @@ export default function TaskAgentChat({
                     message.role === "user" ? "text-blue-600" : "text-green-600"
                   }
                 >
-                  {message.role === "user" ? "You" : "Claude"}:
+                  {message.role === "user" ? "You" : "Agent Smith"}:
                 </p>
                 <div className="prose max-w-none dark:prose-invert">
                   <ReactMarkdown
