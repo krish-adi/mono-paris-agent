@@ -1,7 +1,5 @@
 import json
 import requests
-from server import settings
-from pprint import pprint
 
 import os
 
@@ -13,5 +11,5 @@ def get_apps():
     data = json.loads(response.text)
     filtered_data = [{"name": item["name"], "description": item["description"].replace("\t", "").replace("\n", "").strip()} for item in data["items"]]
 
-    pprint(filtered_data)
+    # pprint(filtered_data)
     return filtered_data

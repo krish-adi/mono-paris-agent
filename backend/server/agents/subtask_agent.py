@@ -81,7 +81,7 @@ async def agent_evaluator_tool(
 ) -> EvaluationResult:
     return await evaluate_agent(task, test_case, system_prompt, expected_output)
 
-async def subtask_agent(task: str, job_title: str, job_description: str) -> OrchestratorResult:
+async def subtask_agent_run(task: str, job_title: str, job_description: str) -> OrchestratorResult:
     context = f"""
 JOB TITLE: {job_title}
 JOB DESCRIPTION: {job_description}

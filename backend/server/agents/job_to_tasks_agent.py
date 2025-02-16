@@ -5,7 +5,7 @@ from typing import List
 from server.settings import settings
 from server.agents.message_logger import log_messages
 from server.services.search import search_content
-from server.services.perplexity import ask_perplexity
+# from server.services.perplexity import ask_perplexity
 
 class TaskItem(BaseModel):
     task: str

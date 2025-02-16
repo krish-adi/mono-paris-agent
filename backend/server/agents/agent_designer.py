@@ -28,7 +28,7 @@ The system prompt should:
 Return only a JSON object with the design details."""
 
 
-print(AGENT_DESIGN_PROMPT)
+# print(AGENT_DESIGN_PROMPT)
 
 agent_design_agent = Agent(
     model=settings.model,

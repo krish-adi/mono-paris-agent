@@ -1,52 +1,46 @@
 from typing import Dict, List, Optional
+import traceback
 from fastapi import APIRouter
 from uuid import uuid4
-from server.agents import job_to_tasks
 from server.settings import settings
 from server.db.queries import (
     create_user_request,
     complete_job_description_agent,
 )
-from server.agents.orchestrator import orchestrator
+from server.agents.job_to_tasks_agent import job_to_tasks_agent
+from server.agents.subtask_agent import subtask_agent_run
 
 router = APIRouter()
 
 
 @router.post("/test")
 async def test_agent():
+    print("\nTesting job analysis with research tools...")
     # Example job and task
-    job_title = "Head of Developer Relations"
-    job_description = """
-    The role involves leading Anthropic's developer relations strategy and team,
-    building strong relationships with the developer community, creating technical content,
-    speaking at conferences, gathering developer feedback, collaborating with product teams,
-    and helping developers successfully integrate and build with Claude and other Anthropic APIs.
-    """
+    try:
+        print("\n1. Testing Software Engineer role...")
+        job_title = "Senior Software Engineer"
+        job_description = """We are looking for a Senior Software Engineer to join our backend team. 
+            The ideal candidate will have strong Python experience and will be responsible 
+            for designing and implementing scalable services."""
+        result = await job_to_tasks_agent(job_title, job_description)
+        print("\nAnalysis successful!")
+        print("\nRequirements:", result.job_requirements)
+        print("\nSkills:", result.job_skills)
+        print("\nResponsibilities:", result.job_responsibilities)
+        print("\nDetailed Tasks:")
+        for task in result.job_tasks:
+            print(f"\n• {task.task} ({task.timePercentage}%)")
+            print(f"  {task.description}")
+        print("\n\nTesting subtask agent...")
+        for task in result.job_tasks:
+            subtask_result = await subtask_agent_run(task.task, job_title, job_description)
+            print(f"\n\nSubtask Result: {subtask_result}")            
 
-    task = "Create technical documentation for a new API endpoint"
-
-    print("\nEvaluating task automation potential...")
-    print(f"Job Title: {job_title}")
-    print(f"Task: {task}")
-    print("\nAnalyzing...")
-
-    # Run the async function and print results
-    result = await orchestrator(task, job_title, job_description)
-
-    print("\nResults:")
-    print("-" * 50)
-    print(f"Task Category: {result.task_category}")
-    print(f"Reasoning: {result.reasoning}")
-    print(f"Best Score: {result.best_score}")
-
-    if result.system_prompt:
-        print("\nSystem Prompt:")
-        print(result.system_prompt)
-
-    if result.tools_needed:
-        print("\nRequired Tools:")
-        for tool in result.tools_needed:
-            print(f"- {tool}")
+    except Exception as e:
+        print("Analysis error:", str(e))
+        print("\nFull traceback:")
+        traceback.print_exc()
 
     return result
 
