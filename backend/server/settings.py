@@ -1,8 +1,6 @@
 from pydantic_ai.settings import ModelSettings
 import os
-import base64
-
-
+from server.services.get_composio_tools import get_apps
 class Settings():
     model: str = "anthropic:claude-3-5-sonnet-latest"
     anthropic_api_key: str = None
@@ -15,9 +13,12 @@ class Settings():
     logfire_token: str = None
     exa_api_key: str = None
     perplexity_api_key: str = None
+    composio_api_key: str = None
+    tools: list = []
 
     def load_settings(self):
         self.model: str = os.getenv("MODEL")
+        self.max_retries: int = 3
         self.logfire_token: str = os.getenv("LOGFIRE_TOKEN")
         self.anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY")
         self.supabase_url: str = os.getenv("SUPABASE_URL")
@@ -31,14 +32,8 @@ class Settings():
         self.model_settings: ModelSettings = ModelSettings(temperature=0)
         self.exa_api_key: str = os.getenv("EXA_API_KEY")
         self.perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY")
+        self.composio_api_key: str = os.getenv("COMPOSIO_API_KEY")
 
-        # os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = (
-        #     "https://cloud.langfuse.com/api/public/otel"  # EU data region
-        # )
-        # # os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # US data region
-        # os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = (
-        #     f"Authorization=Basic {self.langfuse_auth}"
-        # )
-
+        self.tools = get_apps()
 
 settings = Settings()
