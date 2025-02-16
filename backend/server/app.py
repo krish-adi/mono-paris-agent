@@ -5,14 +5,7 @@ from server.routes import router
 from contextlib import asynccontextmanager
 from server.settings import settings
 from server.db.client import database
-import nest_asyncio
 import logfire
-
-nest_asyncio.apply()
-logfire.configure(
-    service_name="backend-irreplaceable",
-    send_to_logfire=False,
-)
 
 
 @asynccontextmanager
@@ -21,12 +14,17 @@ async def lifespan(app: FastAPI):
     load_dotenv(".env")
     settings.load_settings()
     await database.startup()
+    logfire.configure(token=settings.logfire_token)
+    logfire.instrument_anthropic()
+    logfire.info("Hello, {place}!", place="irreplaceable-server")
     yield
     # Shutdown events
     await database.shutdown()
+    logfire.info("Goodbye, {place}!", place="irreplaceable-server")
 
 
 app = FastAPI(lifespan=lifespan)
+logfire.instrument_fastapi(app, capture_headers=True)
 
 # Configure CORS middleware
 app.add_middleware(
