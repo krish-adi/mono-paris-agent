@@ -50,7 +50,7 @@ export default function Home() {
     // Mock API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
-    router.push("/report");
+    router.push("/report/123");
   };
 
   return (

@@ -1,13 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertCircle, Cpu, Settings, User } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRightIcon,
+  CogIcon,
+  Cpu,
+  ExternalLinkIcon,
+  Settings,
+  User,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 type Task = {
   name: string;
+  taskAgentId?: string;
 };
 
 type TaskCategory = {
@@ -16,7 +26,6 @@ type TaskCategory = {
   percentage: number;
   color: string;
   tasks: Task[];
-  showLearnHow?: boolean;
 };
 
 type DashboardData = {
@@ -47,16 +56,18 @@ const dashboardData: DashboardData = {
       title: "Human + AI",
       percentage: 37,
       color: "bg-purple-500",
-      tasks: [{ name: "Task 4" }, { name: "Task 5" }, { name: "Task 6" }],
-      showLearnHow: true,
+      tasks: [
+        { name: "Task 4", taskAgentId: "456" },
+        { name: "Task 5" },
+        { name: "Task 6" },
+      ],
     },
     {
       icon: Cpu,
       title: "Automatable",
       percentage: 6,
       color: "bg-gray-500",
-      tasks: [{ name: "Task 7" }, { name: "Task 8" }],
-      showLearnHow: true,
+      tasks: [{ name: "Task 7", taskAgentId: "789" }, { name: "Task 8" }],
     },
   ],
   alertInfo: {
@@ -96,13 +107,13 @@ export function Dashboard() {
             className="h-4"
           />
         </div>
-      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {dashboardData.taskCategories.map((category, index) => (
-          <TaskCategory key={index} {...category} />
-        ))}
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {dashboardData.taskCategories.map((category, index) => (
+            <TaskCategorySummary key={index} {...category} />
+          ))}
+        </div>
+      </motion.div>
 
       <Alert variant="default">
         <AlertCircle className="h-4 w-4" />
@@ -111,17 +122,50 @@ export function Dashboard() {
           {dashboardData.alertInfo.description}
         </AlertDescription>
       </Alert>
+
+      <div className="flex flex-col gap-6 mt-8">
+        {dashboardData.taskCategories.map((category, index) => (
+          <TaskCategoryDetailed key={index} {...category} />
+        ))}
+      </div>
     </div>
   );
 }
 
-function TaskCategory({
+function TaskCategorySummary({
+  icon: Icon,
+  title,
+  percentage,
+  color,
+}: TaskCategory) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon className={`w-5 h-5 ${color.replace("bg-", "text-")}`} />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold mb-2">{percentage}%</div>
+          <Progress value={percentage} className="h-2 mb-4" />
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function TaskCategoryDetailed({
   icon: Icon,
   title,
   percentage,
   color,
   tasks,
-  showLearnHow,
 }: TaskCategory) {
   return (
     <motion.div
@@ -148,15 +192,20 @@ function TaskCategory({
                 transition={{ delay: index * 0.1 }}
                 className="text-sm text-gray-600"
               >
-                {task.name}
+                {task.taskAgentId ? (
+                  <Link
+                    href={`/report/123/task-agent/${task.taskAgentId}`}
+                    className="flex gap-2 items-center"
+                  >
+                    {task.name}
+                    <ExternalLinkIcon size={14} />
+                  </Link>
+                ) : (
+                  task.name
+                )}
               </motion.li>
             ))}
           </ul>
-          {showLearnHow && (
-            <button className="text-sm text-blue-600 hover:underline">
-              Learn how
-            </button>
-          )}
         </CardContent>
       </Card>
     </motion.div>
