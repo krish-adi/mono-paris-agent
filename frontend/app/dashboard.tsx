@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import {
   AlertCircle,
-  ArrowRightIcon,
-  CogIcon,
   Cpu,
   ExternalLinkIcon,
   Settings,

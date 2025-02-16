@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dashboard } from "../../components/dashboard";
+import { Dashboard } from "../../dashboard";
 import Link from "next/link";
 
 export default function Report() {
