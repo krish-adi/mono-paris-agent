@@ -1,38 +1,46 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from fastapi import APIRouter
+from server.agents import job_to_tasks
+from server.settings import settings
 
 router = APIRouter()
 
 
 @router.get("/")
 def read_root():
+    # Debug print to verify settings
+    print(f"Using model: {settings.model}")
+    print(f"API key set: {'Yes' if settings.anthropic_api_key else 'No'}")
     return {"Hello": "World"}
 
 
 @router.post("/agent/job-description")
-def build_complete_job_description(job_title: str):
+async def build_complete_job_description(job_title: str, job_description: Optional[str] = None):
     """
-    Runs an agent that takes a job title as input and generates a complete job description,
-    including tasks, required skills, and responsibilities. The agent analyzes the job title
-    to create a comprehensive breakdown of the role's requirements and expectations.
+    Runs an agent that takes a job title and optional job description as input and generates
+    a complete job description, including tasks, required skills, and responsibilities.
+    The agent analyzes the inputs to create a comprehensive breakdown of the role's
+    requirements and expectations.
     """
-    _request = {
-        "job_title": job_title,
+    # If no description provided, create a default one
+    if job_description is None:
+        job_description = f"This is a {job_title} position that requires relevant experience and skills."
+    else:
+        # Combine title and description for better context
+        job_description = f"{job_title}: {job_description}"
+    
+    # Use the job_to_tasks agent to generate the complete breakdown
+    result = await job_to_tasks.job_to_tasks(job_title, job_description)
+    
+    # Convert TaskItem objects to dictionaries with model_dump() instead of dict()
+    return {
+        "job_title": result.job_title,
+        "job_description": result.job_description,
+        "job_requirements": result.job_requirements,
+        "job_skills": result.job_skills,
+        "job_responsibilities": result.job_responsibilities,
+        "job_tasks": [task.model_dump() for task in result.job_tasks]
     }
-
-    _response = {
-        "job_title": job_title,
-        "job_description": "This is a job description",
-        "job_requirements": ["Requirement 1", "Requirement 2", "Requirement 3"],
-        "job_skills": ["Skill 1", "Skill 2", "Skill 3"],
-        "job_responsibilities": [
-            "Responsibility 1",
-            "Responsibility 2",
-            "Responsibility 3",
-        ],
-        "job_tasks": ["Task 1", "Task 2", "Task 3"],
-    }
-    return _response
 
 
 @router.post("/agent/job-task-sub-tasks")
