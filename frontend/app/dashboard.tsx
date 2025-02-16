@@ -180,10 +180,6 @@ export function Dashboard({ reportId }: { reportId: string }) {
     return <LoadingSkeleton />;
   }
 
-  if (report.report_status !== "job_description_agent_completed") {
-    return <LoadingSkeleton />;
-  }
-
   console.log({ report });
 
   if (!report?.job_sub_tasks) {
@@ -233,7 +229,7 @@ export function Dashboard({ reportId }: { reportId: string }) {
 
   const taskCategories: DisplayTaskCategory[] = tempTaskCategories.map((c) => ({
     ...c,
-    percentage: (c.percentage / totalpercentage) * 100,
+    percentage: (c.percentage / totalpercentage || 0) * 100,
   }));
 
   const indexScore =
