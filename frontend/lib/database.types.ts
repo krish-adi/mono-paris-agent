@@ -11,31 +11,43 @@ export type Database = {
     Tables: {
       job_sub_tasks: {
         Row: {
+          best_score: number | null
           created_at: string
           description: string | null
           id: string
           job_sub_task_status: string | null
           llm_prompt: string | null
+          reasoning: string | null
           sub_task: string | null
+          task_category: string | null
           task_id: string
+          tools_needed: string[] | null
         }
         Insert: {
+          best_score?: number | null
           created_at?: string
           description?: string | null
           id: string
           job_sub_task_status?: string | null
           llm_prompt?: string | null
+          reasoning?: string | null
           sub_task?: string | null
+          task_category?: string | null
           task_id: string
+          tools_needed?: string[] | null
         }
         Update: {
+          best_score?: number | null
           created_at?: string
           description?: string | null
           id?: string
           job_sub_task_status?: string | null
           llm_prompt?: string | null
+          reasoning?: string | null
           sub_task?: string | null
+          task_category?: string | null
           task_id?: string
+          tools_needed?: string[] | null
         }
         Relationships: [
           {

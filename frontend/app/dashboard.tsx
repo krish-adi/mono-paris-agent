@@ -40,16 +40,18 @@ type DashboardData = {
   };
 };
 
-const TASK_CATEGORIES = ["HUMAN_ONLY", "HUMAN_AI", "AUTOMATABLE"] as const;
+const TASK_CATEGORIES = [
+  "HUMAN_ONLY",
+  "AUGMENTATION_POSSIBLE",
+  "AUTOMATION_READY",
+] as const;
 type TaskCategory = (typeof TASK_CATEGORIES)[number];
 type InputReportWithTasks = Tables<"reports"> & {
   job_tasks: (Tables<"job_tasks"> & {
     job_sub_tasks: Tables<"job_sub_tasks">[];
   })[];
 };
-type LocalSubTask = Tables<"job_sub_tasks"> & {
-  taskCategory: TaskCategory;
-};
+type LocalSubTask = Tables<"job_sub_tasks">;
 type ReportWithTasks = Tables<"reports"> & {
   job_sub_tasks: LocalSubTask[];
 };
@@ -80,9 +82,11 @@ const getReport = async (reportId: string) => {
       .flatMap((j) => j.job_sub_tasks)
       .map((j) => ({
         ...j,
-        taskCategory: TASK_CATEGORIES[
-          Math.floor(Math.random() * 3)
-        ] satisfies TaskCategory,
+        task_category:
+          j.task_category ||
+          (TASK_CATEGORIES[
+            Math.floor(Math.random() * 3)
+          ] satisfies TaskCategory),
       })),
   } satisfies ReportWithTasks;
 };
@@ -138,7 +142,7 @@ export function Dashboard({ reportId }: { reportId: string }) {
       percentage: 57,
       color: "bg-blue-600",
       tasks: report.job_sub_tasks.filter(
-        (task) => task.taskCategory === "HUMAN_ONLY"
+        (task) => task.task_category === "HUMAN_ONLY"
       ),
     },
     {
@@ -147,16 +151,16 @@ export function Dashboard({ reportId }: { reportId: string }) {
       percentage: 37,
       color: "bg-purple-500",
       tasks: report.job_sub_tasks.filter(
-        (task) => task.taskCategory === "HUMAN_AI"
+        (task) => task.task_category === "AUGMENTATION_POSSIBLE"
       ),
     },
     {
       icon: Cpu,
-      title: "Automatable",
+      title: "AUTOMATION_READY",
       percentage: 6,
       color: "bg-gray-500",
       tasks: report.job_sub_tasks.filter(
-        (task) => task.taskCategory === "AUTOMATABLE"
+        (task) => task.task_category === "AUTOMATION_READY"
       ),
     },
   ];
