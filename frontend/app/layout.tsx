@@ -31,11 +31,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col items-center">
+          <main className="h-full flex flex-col items-center">
+            <div className="flex-1 w-full flex flex-col items-center max-h-full">
               <Navbar />
-              <div className="flex flex-col gap-4 max-w-screen-xl p-5 flex-1 overflow-auto">
-                {children}
+              <div className="flex-1 overflow-auto w-full flex flex-col items-center">
+                <div className="flex flex-col gap-4 max-w-screen-xl p-5 h-full  ">
+                  {children}
+                </div>
               </div>
             </div>
           </main>

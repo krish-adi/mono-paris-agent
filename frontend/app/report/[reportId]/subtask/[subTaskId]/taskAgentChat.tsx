@@ -178,13 +178,14 @@ export default function TaskAgentChat({
   };
 
   return (
-    <div className="container mx-auto p-4 pb-0">
+    <div className="container mx-auto p-4 pb-0 h-full flex flex-col">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="sticky top-0 z-10"
       >
-        <Card className="mb-4">
+        <Card className="mb-4 ">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Chat with our Agent</span>
@@ -212,48 +213,46 @@ export default function TaskAgentChat({
         </Card>
       </motion.div>
 
-      <ScrollArea className="h-[60vh] rounded-md p-4 mb-4">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className={`mb-4 ${
-                message.role === "user" ? "text-right" : "text-left"
-              }`}
-            >
-              <Card>
-                <CardContent className="p-3">
-                  <p
-                    className={
-                      message.role === "user"
-                        ? "text-blue-600"
-                        : "text-green-600"
-                    }
+      {/* <ScrollArea className="h-[60vh] rounded-md p-4 mb-4"> */}
+      <div className="space-y-4 flex-1">
+        {messages.map((message) => (
+          <motion.div
+            key={message.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className={`mb-4 ${
+              message.role === "user" ? "text-right" : "text-left"
+            }`}
+          >
+            <Card>
+              <CardContent className="p-3">
+                <p
+                  className={
+                    message.role === "user" ? "text-blue-600" : "text-green-600"
+                  }
+                >
+                  {message.role === "user" ? "You" : "Claude"}:
+                </p>
+                <div className="prose max-w-none dark:prose-invert">
+                  <ReactMarkdown
+                    rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                    components={{
+                      code: CodeBlock,
+                    }}
                   >
-                    {message.role === "user" ? "You" : "Claude"}:
-                  </p>
-                  <div className="prose max-w-none dark:prose-invert">
-                    <ReactMarkdown
-                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                      components={{
-                        code: CodeBlock,
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-          <div ref={messagesEndRef} /> {/* Scroll anchor */}
-        </div>
-      </ScrollArea>
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+        <div ref={messagesEndRef} /> {/* Scroll anchor */}
+      </div>
+      {/* </ScrollArea> */}
 
-      <div className="space-y-4">
+      <div className="space-y-4 sticky bottom-0 pt-4 ">
         <form onSubmit={handleSubmit} className="relative flex gap-2">
           <div className="relative flex-1 bg-background rounded-md border">
             <Textarea
