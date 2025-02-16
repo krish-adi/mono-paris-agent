@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Send, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -8,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// Mock function to simulate Claude LLM response
-const mockClaudeResponse = async (prompt: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return `Here's a response to "${prompt}" from Claude LLM.`;
-};
+import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { Message } from "@/lib/types";
+import { Textarea } from "@/components/ui/textarea";
+import ReactMarkdown from "react-markdown";
 
 export default function TaskAgentChat({
   reportId,
@@ -22,27 +19,83 @@ export default function TaskAgentChat({
   reportId: string;
   taskAgentId: string;
 }) {
-  const [messages, setMessages] = useState<
-    { role: "user" | "assistant"; content: string }[]
-  >([]);
+  const [sessionId] = useState<string>(uuidv4());
+
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: "Please describe me the issue you want to solve",
+      createdAt: new Date(),
+    },
+  ]);
+  console.log(messages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState<string>("");
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setIsLoading(true);
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: input.trim(),
+      createdAt: new Date(),
+    };
+
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput("");
+    setIsLoading(true);
+    setStreamingMessage("");
 
-    const systemPrompt =
-      "You are an AI assistant helping to automate tasks for a Junior Software Developer.";
-    const fullPrompt = `${systemPrompt}\n\nUser: ${input}`;
+    try {
+      const response = await fetch("/api/claude", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          sessionId,
+        }),
+      });
 
-    const response = await mockClaudeResponse(fullPrompt);
-    setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-    setIsLoading(false);
+      if (!response.ok) throw new Error("API request failed");
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let completeMessage = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        completeMessage += chunk;
+        setStreamingMessage(completeMessage);
+      }
+
+      const finalMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: completeMessage,
+        createdAt: new Date(),
+      };
+
+      setMessages((prevMessages) => [...prevMessages, finalMessage]);
+      setStreamingMessage("");
+    } catch (error) {
+      console.error("Error calling Claude API:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,12 +126,12 @@ export default function TaskAgentChat({
       </motion.div>
 
       <ScrollArea className="h-[60vh] rounded-md border p-4 mb-4">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <motion.div
-            key={index}
+            key={message.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+            transition={{ duration: 0.5 }}
             className={`mb-4 ${
               message.role === "user" ? "text-right" : "text-left"
             }`}
@@ -92,21 +145,37 @@ export default function TaskAgentChat({
                 >
                   {message.role === "user" ? "You" : "Claude"}:
                 </p>
-                <p>{message.content}</p>
+                <p>
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </p>
               </CardContent>
             </Card>
           </motion.div>
         ))}
+        {streamingMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 text-left"
+          >
+            <Card>
+              <CardContent className="p-3">
+                <p className="text-green-600">Claude:</p>
+                <p>{streamingMessage}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input
+      <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+        <Textarea
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Type your message here..."
-          className="flex-grow"
+          className="flex-grow min-h-[44px] p-2"
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} size="lg">
           <Send className="mr-2 h-4 w-4" />
           Send
         </Button>
