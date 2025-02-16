@@ -14,7 +14,9 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "uvicorn>=0.34.0",
     "supabase>=2.13.0",
-    "logfire[httpx]>=3.5.3",
+    "logfire[fastapi,httpx,sqlite3]>=3.5.3",
+    "nest-asyncio>=1.6.0",
+    "langfuse>=2.59.3",
     "exa-py>=1.8.8",
     "openai>=1.63.0",
 ]
