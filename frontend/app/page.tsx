@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as Form from "@radix-ui/react-form";
 import { Button } from "@/components/ui/button";
-import { Loader2, SparklesIcon } from "lucide-react";
+import { BotIcon, Loader2, SparklesIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -167,14 +167,17 @@ export default function Home() {
         <Form.Submit asChild>
           <Button
             type="submit"
-            className={`mt-2  ${
-              isLoading || isAutofillLoading
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }`}
+            className={`mt-2  
+              bg-blue-900 text-white hover:bg-blue-800 focus:ring-blue-500
+              flex gap-2 items-center justify-center
+              ${
+                isLoading || isAutofillLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
             disabled={isLoading || isAutofillLoading}
           >
-            {isLoading ? "Generating..." : "Generate my report"}
+            {isLoading ? "Generating..." : "Generate my report"} <BotIcon />
           </Button>
         </Form.Submit>
       </Form.Root>
