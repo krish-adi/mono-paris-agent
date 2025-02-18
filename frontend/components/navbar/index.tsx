@@ -6,7 +6,7 @@ export default function index() {
   return (
     <nav className="w-full flex justify-between items-center border-b border-b-foreground/10 py-2 px-4">
       <Link className="text-md font-bold" href="/">
-        IRREPLACABLE
+        IRREPLACEABLE
       </Link>
       <div className="flex items-center gap-2">
         {/* <Link href="/">Home</Link>

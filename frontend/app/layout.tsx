@@ -8,8 +8,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "IRREPLACABLE",
-  description: "IRREPLACABLE",
+  title: "IRREPLACEABLE",
+  description: "IRREPLACEABLE",
 };
 
 const geistSans = Geist({
